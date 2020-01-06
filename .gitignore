@@ -1,0 +1,6 @@
+/venv
+.idea
+db.sqlite3
+edutatar/__pycache__
+journal_parser/__pycache__
+journal_parser/JournalParser/__pycache__
