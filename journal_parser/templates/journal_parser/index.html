@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>index page</title>
+</head>
+<body>
+<form action="{% url 'act' %}" method="post">
+    {% csrf_token %}
+        <div><input type="submit" value="Проверить журналы" name="_journal"></div>
+        <div><input type="submit" value="VKrepost" name="_vkrepost"></div>
+</form>
+</body>
+</html>
