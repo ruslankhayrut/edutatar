@@ -98,9 +98,9 @@ def fill_checker(sheet, page_data, params):
                 if row[i] in MARKS:
                     mrks += 1
 
-            allowed_not_row = re.findall('([А-Яа-яЁё]+)', params.get('allowed_not_row', ''))
-            for i in range(len(allowed_not_row)):
-                allowed_not_row[i] = allowed_not_row[i][0].upper() + allowed_not_row[i][0:].lower()
+            allowed_not_row = re.findall('[А-Яа-яЁё]+', params.get('allowed_not_row', ''))
+            for e in range(len(allowed_not_row)):
+                allowed_not_row[e] = allowed_not_row[e][0].upper() + allowed_not_row[e][0:].lower()
 
             allowed_not_row = tuple(allowed_not_row)
 
