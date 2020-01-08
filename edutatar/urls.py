@@ -15,6 +15,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 from journal_parser.views import index, act
 
 urlpatterns = [
@@ -22,4 +24,4 @@ urlpatterns = [
     path('journal/', include('journal_parser.urls')),
     path('', index, name='index'),
     path('act', act, name='act'),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

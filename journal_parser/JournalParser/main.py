@@ -1,5 +1,5 @@
 """"Author: Ruslan Khairutdinov onsunday1703@gmail.com"""
-
+import os
 import openpyxl
 import re
 import datetime
@@ -7,11 +7,12 @@ from bs4 import BeautifulSoup
 from .edutatarauth import edu_auth
 from .get_journal import get_journal_info
 from .constants import TO_FLOAT, TO_INT
+from edutatar.settings import FILES_DIR
 
 def execute(params):
     def get_years(session):
         r = session.get('https://edu.tatar.ru/school')
-        html = BeautifulSoup(r.text, 'lxml')
+        html = BeautifulSoup(r.text, 'html.parser')
 
         h3 = html.find('h3')
         years = list(map(int, re.findall(r'\d+', h3.text)))
@@ -44,7 +45,7 @@ def execute(params):
 
     for class_num in range(params['class1'], params['class2'] + 1):
         r = session.get('https://edu.tatar.ru/school/journal/select_edu_class?number={}'.format(class_num))
-        soup = BeautifulSoup(r.text, 'lxml')
+        soup = BeautifulSoup(r.text, 'html.parser')
 
         grades = []
         links_to_journal = []
@@ -67,7 +68,7 @@ def execute(params):
         for grade in grades_dict.keys():
             class_id = re.findall(r'\d+', grades_dict[grade])[0]
             r = session.get(grades_dict[grade])
-            soup = BeautifulSoup(r.text, 'lxml')
+            soup = BeautifulSoup(r.text, 'html.parser')
 
 
             subject_ids = []
@@ -116,6 +117,7 @@ def execute(params):
         minute = '0{}'.format(minute)
 
     filename = '{0} {1}-{2}.xlsx'.format(params['login'], datetime.datetime.now().hour, minute)
-    table.save(filename)
+    filepath = os.path.join(FILES_DIR, filename)
+    table.save(filepath)
 
     return filename

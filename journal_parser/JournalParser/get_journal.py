@@ -20,7 +20,7 @@ def get_journal_info(data, moved_students=False):
                   '&criteria={1}&edu_class_id={2}&' \
                   'show_moved_pupils={3}'.format(term, criteria[0], class_id, int(moved_students))
     journal = session.get(journal_url)
-    html = BeautifulSoup(journal.text, 'lxml')
+    html = BeautifulSoup(journal.text, 'html.parser')
 
     if criteria[1][1].startswith('Электив'):
         return False
@@ -45,7 +45,7 @@ def get_journal_info(data, moved_students=False):
             r = session.get('https://edu.tatar.ru/school/journal/school_editor?term={0}' \
                   '&criteria={1}&edu_class_id={2}&' \
                   'show_moved_pupils={3}&page={4}'.format(term, criteria[0], class_id, int(moved_students), int(pages[-2])+1))
-            html = BeautifulSoup(r.text, 'lxml')
+            html = BeautifulSoup(r.text, 'html.parser')
             pages = html.find('div', {'class': 'pages'})
             pages = [p for p in pages.text.split() if p.isdigit()]
             last_page = int(pages[-1])
@@ -64,7 +64,7 @@ def get_journal_info(data, moved_students=False):
                       '&criteria={1}&edu_class_id={2}&' \
                       'show_moved_pupils={3}&page={4}'.format(term, criteria[0], class_id, int(moved_students), page)
         journal = session.get(journal_url)
-        html = BeautifulSoup(journal.text, 'lxml')
+        html = BeautifulSoup(journal.text, 'html.parser')
 
 
         months = get_months(html)

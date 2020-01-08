@@ -3,13 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <title>Checking</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+
 </head>
 <body>
 
+<p id="progress-title"></p>
+{% if task_id %}
+  <script>
+  var taskUrl = "{% url 'task' task_id=task_id %}";
+  var dots = 1;
+  var progressTitle = document.getElementById('progress-title');
+  updateProgressTitle();
 
-{{params}}
+  function getCookie(name) {
 
+    var matches = document.cookie.match(new RegExp(
+      "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+    ))
+    return matches ? decodeURIComponent(matches[1]) : undefined
+  }
 
-<p>Ваши журналы проверяются. Пожалуйста, подождите...</p>
+  var timer = setInterval(function() {
+    updateProgressTitle();
+    axios.get(taskUrl)
+      .then(function(response){
+        var taskStatus = response.data.task_status
+        if (taskStatus === 'SUCCESS') {
+          clearTimer('Check downloads for results');
+          var url = window.location.protocol + '//' + window.location.host + '/media/files/' + response.data.results.file_name;
+          var a = document.createElement("a");
+          a.target = '_BLANK';
+          document.body.appendChild(a);
+          a.style = "display: none";
+          a.href = url;
+          a.download = 'response.data.results.file_name';
+          a.click();
+          document.body.removeChild(a);
+
+          var remove_url = window.location.protocol + '//' + window.location.host + '/journal/remove/' + response.data.results.file_name + '/';
+          axios.defaults.xsrfCookieName = 'csrftoken';
+          axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
+          axios.post(remove_url, response.data.results.file_name);
+
+        } else if (taskStatus === 'FAILURE') {
+          clearTimer('An error occurred');
+        }
+      })
+      .catch(function(err){
+        console.log('err', err);
+        clearTimer('An error occurred');
+      });
+  }, 800);
+  function updateProgressTitle() {
+    dots++;
+    if (dots > 3) {
+      dots = 1;
+    }
+    progressTitle.innerHTML = 'Ваши журналы проверяются. Пожалуйста, подождите';
+    for (var i = 0; i < dots; i++) {
+      progressTitle.innerHTML += '.';
+    }
+  }
+  function clearTimer(message) {
+    clearInterval(timer);
+    progressTitle.innerHTML = message;
+  }
+  </script>
+  {% endif %}
+
 </body>
 </html>
