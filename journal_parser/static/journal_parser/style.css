@@ -1,0 +1,26 @@
+body {
+    font-family: Gill Sans, sans-serif;
+    position:relative;
+
+    height:100%;
+    margin:0;
+}
+form {
+    border: 1px solid black; /* Параметры границы */
+    padding: 10px; /* Поля вокруг текста */
+}
+p {
+    padding: 10px; /* Поля вокруг текста */
+}
+
+h1 {
+    text-align: center;
+}
+
+p#progress-title {
+    font-family: Calibri;
+    position: relative;
+    top: 70%;
+    left: 0%;
+    font-size: 40pt;
+}

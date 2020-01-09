@@ -1,7 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+    {% load static %}
+
     <meta charset="UTF-8">
+    <link rel="shortcut icon" href="{% static 'journal_parser/favicon.ico' %}" type="image/x-icon">
+    <link rel="stylesheet" href="{% static 'journal_parser/style.css' %}">
     <title>Checking</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
 
@@ -11,18 +16,10 @@
 <p id="progress-title"></p>
 {% if task_id %}
   <script>
-  var taskUrl = "{% url 'task' task_id=task_id %}";
+  var taskUrl = "{% url 'journal_parser:task' task_id=task_id %}";
   var dots = 1;
   var progressTitle = document.getElementById('progress-title');
   updateProgressTitle();
-
-  function getCookie(name) {
-
-    var matches = document.cookie.match(new RegExp(
-      "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
-    ))
-    return matches ? decodeURIComponent(matches[1]) : undefined
-  }
 
   var timer = setInterval(function() {
     updateProgressTitle();
@@ -30,7 +27,7 @@
       .then(function(response){
         var taskStatus = response.data.task_status
         if (taskStatus === 'SUCCESS') {
-          clearTimer('Check downloads for results');
+          clearTimer('Журналы проверены! Проверьте "Загрузки", там должен быть Excel-файл');
           var url = window.location.protocol + '//' + window.location.host + '/media/files/' + response.data.results.file_name;
           var a = document.createElement("a");
           a.target = '_BLANK';
@@ -44,15 +41,15 @@
           var remove_url = window.location.protocol + '//' + window.location.host + '/journal/remove/' + response.data.results.file_name + '/';
           axios.defaults.xsrfCookieName = 'csrftoken';
           axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
-          axios.post(remove_url, response.data.results.file_name);
+          axios.post(remove_url, response.data.results.file_name)
 
         } else if (taskStatus === 'FAILURE') {
-          clearTimer('An error occurred');
+          clearTimer('Произошла шибка :(');
         }
       })
       .catch(function(err){
         console.log('err', err);
-        clearTimer('An error occurred');
+        clearTimer('Произошла ошибка:(');
       });
   }, 800);
   function updateProgressTitle() {

@@ -4,6 +4,7 @@ from django.views import View
 from .tasks import exec
 from celery import current_app
 import os
+import time
 from edutatar.settings import FILES_DIR
 
 def index(request):
@@ -29,6 +30,7 @@ def process(request):
     return render(request, 'journal_parser/finished.html', c)
 
 def remove(request, file_name):
+    time.sleep(5)
     os.remove(os.path.join(FILES_DIR, file_name))
     return HttpResponse(status=200)
 
