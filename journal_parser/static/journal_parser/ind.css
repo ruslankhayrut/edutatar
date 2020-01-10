@@ -1,0 +1,52 @@
+body {
+    padding-top: 12%;
+    background-color: white;
+    width: 800px;
+}
+
+
+
+h1 {
+    position: relative;
+    left: 61%;
+    color: black;
+}
+
+form {
+    position:relative;
+    left: 68%;
+
+}
+
+div {
+    margin-right: 1%;
+}
+
+input[type=submit] {
+    height: 30px;
+    width: 220px;
+    background-color: Transparent;
+    background-repeat:no-repeat;
+
+    cursor:pointer;
+    overflow: hidden;
+    outline:none;
+    color: black;
+    font-weight: bold;
+
+}
+
+input[type=submit]:hover {
+    height: 30px;
+    width: 220px;
+    background-color: Transparent;
+    background-repeat:no-repeat;
+
+    border-color: #0066ff;
+    cursor:pointer;
+    overflow: hidden;
+    outline:none;
+    color: #0066ff;
+    font-weight: bold;
+}
+

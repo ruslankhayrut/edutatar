@@ -1,7 +1,7 @@
-from celery import shared_task
+from edutatar.celery import app
 from journal_parser.JournalParser.main import execute
 
-@shared_task
+@app.task(time_limit=3600)
 def exec(data):
     fn = execute(data)
     results = {'file_name': fn}

@@ -1,12 +1,3 @@
-
-function pre_sub() {
-    let btn = document.getElementById('submitBtn');
-    btn.value = 'Выполняется...';
-    btn.disabled = true;
-    let btn2 = document.getElementById('cancel');
-    btn2.disabled = false;
-}
-
 function lessons_fill() {
     c = document.getElementById('check_lessons_fill')
     inpt = document.getElementById('lesson_percent')
@@ -50,3 +41,11 @@ function term_marks() {
     };
 }
 
+
+function revoke_confirm(f) {
+    if (confirm('Вы уверены, что хотите отменить проверку?')) {
+        return true
+    } else {
+        return false
+    }
+}

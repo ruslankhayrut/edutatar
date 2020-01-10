@@ -14,7 +14,7 @@
 <body>
 <h1>Проверка журналов школы в edu.tatar</h1>
 
-<form  action="process_journal" method="post">
+<form  action="process_journal" method="post" id="mainForm">
     {% csrf_token %}
     <p>
         <label for="login">Логин:</label>
@@ -57,7 +57,7 @@
     </p>
     <p>
         <label for="allowed_not_row">Предметы, где "ПР" не требует колонки оценок:</label>
-        <input type="text" name="allowed_not_row" id="allowed_not_row" size="50" pattern="([А-Яа-яЁё]+)" placeholder="Алгебра, Геометрия, Математика">
+        <input type="text" name="allowed_not_row" id="allowed_not_row" size="50" pattern="[А-Яа-яЁё, ]+" placeholder="Алгебра, Геометрия, Математика">
     </p>
     <p>
         <label for="check_students_fill">Проверять количество оценок у ученика за четверть:</label>

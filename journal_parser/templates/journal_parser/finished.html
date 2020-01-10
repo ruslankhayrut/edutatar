@@ -9,11 +9,16 @@
     <link rel="stylesheet" href="{% static 'journal_parser/style.css' %}">
     <title>Checking</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
-
+    <script type="text/javascript" src="{% static 'journal_parser/script.js' %}"></script>
 </head>
 <body>
 
 <p id="progress-title"></p>
+<br>
+<form action="{% url 'journal_parser:cancel' task_id=task_id %}" method="post" id="cancelForm">
+    {% csrf_token %}
+    <input type="submit" value="Отменить" onclick="return revoke_confirm()">
+</form>
 {% if task_id %}
   <script>
   var taskUrl = "{% url 'journal_parser:task' task_id=task_id %}";

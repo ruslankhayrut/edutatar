@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.views import View
 from .tasks import exec
 from celery import current_app
+from edutatar.celery import app
 import os
 import time
 from edutatar.settings import FILES_DIR
@@ -33,6 +34,11 @@ def remove(request, file_name):
     time.sleep(5)
     os.remove(os.path.join(FILES_DIR, file_name))
     return HttpResponse(status=200)
+
+def cancel(request, task_id):
+    app.control.revoke(task_id, terminate=True)
+
+    return HttpResponseRedirect(reverse('journal_parser:check_journal'))
 
 class TaskView(View):
     def get(self, request, task_id):

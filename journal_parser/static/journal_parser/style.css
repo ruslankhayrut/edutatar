@@ -5,10 +5,20 @@ body {
     height:100%;
     margin:0;
 }
-form {
-    border: 1px solid black; /* Параметры границы */
+form#mainForm {
+    border: 1px solid #e6e6e6; /* Параметры границы */
     padding: 10px; /* Поля вокруг текста */
+    margin: 5% 20%;
 }
+
+form#cancelForm {
+    position: fixed;
+    top: 50%;
+    left: 30%;
+    margin-top: 5px;
+    margin-left: 0px;
+}
+
 p {
     padding: 10px; /* Поля вокруг текста */
 }
@@ -21,6 +31,10 @@ p#progress-title {
     font-family: Calibri;
     position: relative;
     top: 70%;
-    left: 0%;
+    margin: 5% 20%;
     font-size: 40pt;
+}
+
+input[type=submit] {
+    height: 30px;
 }

@@ -131,20 +131,21 @@ def fill_checker(sheet, page_data, params):
             only_marks = [m for m in marks[row] if m in MARKS]
             only_ms = len(only_marks)
 
-            if params.get('check_students_fill'):
-                if only_ms / total < params.get('term_percent', 0)/100:
-                    date = ''
-                    w = 'У ученика мало оценок за четверть. Строка {}'.format(row+1)
-                    pattern = row_pattern + [date, w]
-                    warnings.append(pattern)
-
-            if params.get('check_double_two'):
-                for i in range(only_ms - 1):
-                    if only_marks[i] == 2 and only_marks[i+1] == 2:
+            if total:
+                if params.get('check_students_fill'):
+                    if only_ms / total < params.get('term_percent', 0)/100:
                         date = ''
-                        w = 'Две двойки подряд. Строка {}'.format(row+1)
+                        w = 'У ученика мало оценок за четверть. Строка {}'.format(row+1)
                         pattern = row_pattern + [date, w]
                         warnings.append(pattern)
+
+                if params.get('check_double_two'):
+                    for i in range(only_ms - 1):
+                        if only_marks[i] == 2 and only_marks[i+1] == 2:
+                            date = ''
+                            w = 'Две двойки подряд. Строка {}'.format(row+1)
+                            pattern = row_pattern + [date, w]
+                            warnings.append(pattern)
 
     for warning in warnings:
         sheet.append(warning)
