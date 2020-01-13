@@ -22,7 +22,8 @@ from journal_parser.views import index, act
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('journal/', include('journal_parser.urls')),
-    path('vkrepost', include('vkrepost.urls')),
+    path('vkrepost/', include('vkrepost.urls')),
+    path('vospbot/', include('vosp_bot.urls')),
     path('', index, name='index'),
     path('act', act, name='act'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
