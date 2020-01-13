@@ -52,4 +52,4 @@ def act(request):
     if '_journal' in request.POST:
         return HttpResponseRedirect(reverse('journal_parser:check_journal'))
     elif '_vkrepost' in request.POST:
-        return HttpResponseRedirect(reverse('index'))
+        return HttpResponseRedirect(reverse('vkrepost:info'))

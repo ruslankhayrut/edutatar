@@ -14,7 +14,7 @@ form#mainForm {
 form#cancelForm {
     position: fixed;
     top: 50%;
-    left: 30%;
+    left: 45%;
     margin-top: 5px;
     margin-left: 0px;
 }
@@ -30,8 +30,9 @@ h1 {
 p#progress-title {
     font-family: Calibri;
     position: relative;
+    text-align:center;
     top: 70%;
-    margin: 5% 20%;
+    margin: 10% 13%;
     font-size: 40pt;
 }
 
