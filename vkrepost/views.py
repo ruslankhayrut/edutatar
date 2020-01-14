@@ -1,38 +1,47 @@
-from django.shortcuts import render
+from django.shortcuts import render, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 from .config import CONF_STR, API, OWNER_ID, TOKEN
 from .edutatar import post_news
-import json
 import datetime
 import time
 import requests
-# Create your views here.
+import json
+
+
 def info(request):
     return render(request, 'vkrepost/info.html')
 
+@csrf_exempt
 def process(request):
-    data = json.loads(request.data, encoding='utf-8')
 
-    if data['type'] == 'confirmation':
-        return CONF_STR
+    if request.method == 'POST':
+        data = request.body.decode('utf-8')
+        data = json.loads(data)
 
-    elif data['type'] == 'wall_post_new':
+        if data.get('type') == 'confirmation':
+            return HttpResponse(CONF_STR)
 
-        text, photo_url = extract_data(data)
+        elif data.get('type') == 'wall_post_new':
+            proc(data)
+            return HttpResponse('ok', status=200)
 
-        msg = 'В вашем сообществе новая запись:\n\n{0}\n{1}'.format(text, photo_url)
+        return HttpResponse('undefined data')
 
-        send_message(msg)
-
-        return 'ok', execute(text, photo_url)
+    return HttpResponse('ok')
 
 
-def execute(text, photo_url):
+def proc(data):
+    text, photo_data, title = extract_data(data)
+
+    return execute(title, text, photo_data)
+
+def execute(title, text, photo_data):
     d = {}
     d['date'] = datetime.datetime.strftime(datetime.datetime.now(), '%d.%m.%Y')
     d['text'] = text
-    d['photo'] = photo_url
+    d['photo'] = photo_data
+    d['title'] = title
 
-    send_message('Отправляем пост в edu.tatar')
 
     r = post_news(d)
     if r == 200:
@@ -51,17 +60,38 @@ def send_message(text):
 def extract_data(data):
     text = data['object']['text']
 
-    photo_url = ''
+    title = ''
+    photo_data = {}
 
     attachments = data['object'].get('attachments')
     if attachments:
-        photos = [att for att in attachments if att['type'] == 'photo']
+        photos = []
+        album = None
+        for att in attachments:
+            if att['type'] == 'photo':
+                photos.append(att)
+            elif att['type'] == 'album':
+                album = att['album']
+
         if photos:
             selected_photo = photos[0]
 
             selected_size = selected_photo['photo']['sizes'][-1]  # the biggest one
 
-            photo_url = selected_size['url']
+            photo_data['photo_url'] = selected_size['url']
+
+            photo_data['width'] = selected_size['width']
+            photo_data['height'] = selected_size['height']
+
+        elif album:
+            selected_size = album['thumb']['sizes'][-1]
+            photo_data['photo_url'] = selected_size['url']
+
+            photo_data['width'] = selected_size['width']
+            photo_data['height'] = selected_size['height']
+            title = album['title']
 
 
-    return text, photo_url
+
+
+    return text, photo_data, title

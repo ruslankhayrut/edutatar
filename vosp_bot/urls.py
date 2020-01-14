@@ -5,5 +5,6 @@ from . import views
 
 app_name = 'vosp_bot'
 urlpatterns = [
-    path(''+token, views.index, name='index')
+    path(token+'/', views.index, name='index'),
+    path('', views.set_webhook, name='set_webhook'),
 ]

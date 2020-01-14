@@ -42,9 +42,15 @@ def post_news(data):
     text = strip_emoji(data['text'])
 
     date = data['date']
-    photo_url = data['photo']
+    photo_url = data['photo']['photo_url']
+    title = data['title']
 
-    title, lead = process_text(text)
+    if not title:
+        title, lead = process_text(text)
+    else:
+        lead = process_text(text)[1]
+
+
 
     session = edu_auth(LOGIN, PASSWORD)
 
@@ -68,7 +74,18 @@ def post_news(data):
 
     if photo_url:
         upload_img(session, photo_url)
-        crop = '0|0|220|145|220|145'
+        width = data['photo']['width']
+        height = data['photo']['height']
+
+        h = 145 * int(width / 220)
+        w = 220 * int(height / 145)
+        if height >= h:
+            crop = '0|0|{0}|{1}|{0}|{1}'.format(width, h)
+        elif width >= w:
+            crop = '0|0|{0}|{1}|{0}|{1}'.format(w, height)
+        else:
+            crop = '0|0|220|145|220|145'
+
     else:
         crop = None
 
