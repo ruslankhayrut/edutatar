@@ -18,6 +18,10 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from journal_parser.views import index, act
+from django.views.defaults import server_error
+from functools import partial
+
+#handler500 = partial(server_error, template_name='journal_parser/500.html')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

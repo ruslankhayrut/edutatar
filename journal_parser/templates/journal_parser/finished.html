@@ -49,7 +49,7 @@
           axios.post(remove_url, response.data.results.file_name)
 
         } else if (taskStatus === 'FAILURE') {
-          clearTimer('Произошла шибка :(');
+          clearTimer('Произошла ошибка :(');
         }
       })
       .catch(function(err){

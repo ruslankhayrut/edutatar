@@ -25,7 +25,7 @@ SECRET_KEY = 'te6kelptq&ra+!4yyn^x3iqx%gcukh%9n%6f=i(cu5d(1n6&v0'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = DEBUG
 
-ALLOWED_HOSTS = ['features.li79.ru', 'localhost:8000']
+ALLOWED_HOSTS = ['features.li79.ru', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'vkrepost.apps.VkrepostConfig',
     'vosp_bot.apps.VospBotConfig',
 ]
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

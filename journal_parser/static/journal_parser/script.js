@@ -41,11 +41,8 @@ function term_marks() {
     };
 }
 
-
-function revoke_confirm(f) {
-    if (confirm('Вы уверены, что хотите отменить проверку?')) {
-        return true
-    } else {
-        return false
-    }
+window.onbeforeunload = function() {
+    btn = document.getElementById('sbm');
+    btn.value = 'Подождите...';
+    btn.disabled = true;
 }

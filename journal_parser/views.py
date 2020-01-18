@@ -2,11 +2,13 @@ from django.shortcuts import render, HttpResponseRedirect, reverse, HttpResponse
 from django.http import JsonResponse
 from django.views import View
 from .tasks import exec
+import magic
 from celery import current_app
 from edutatar.celery import app
 import os
 import time
 from edutatar.settings import FILES_DIR
+from .JournalParser.main import execute
 
 def index(request):
     return render(request, 'journal_parser/index.html')
@@ -21,14 +23,23 @@ def process(request):
         'params': dict(request.POST),
     }
 
-    task = exec.delay(context)
+    # task = exec.delay(context)
+    #
+    # c = {
+    #     'task_id': task.id,
+    #     'task_status': task.status
+    # }
 
-    c = {
-        'task_id': task.id,
-        'task_status': task.status
-    }
+    fn = execute(context)
+    path = os.path.join(FILES_DIR, fn)
+    with open(path, 'rb') as fd:
+        mtype = magic.from_file(path, True)
+        response = HttpResponse(fd, content_type=mtype)
+        response['Content-Disposition'] = 'attachment; filename="%s"' % fn
+    os.remove(path)
+    return response
 
-    return render(request, 'journal_parser/finished.html', c)
+    #return render(request, 'journal_parser/finished.html', c)
 
 def remove(request, file_name):
     time.sleep(5)

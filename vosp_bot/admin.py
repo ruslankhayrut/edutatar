@@ -1,5 +1,7 @@
 from django.contrib import admin
-from .models import Vosp
+from .models import Vosp, Mutfak
+
+
 
 
 class VospAdmin(admin.ModelAdmin):
@@ -10,4 +12,9 @@ class VospAdmin(admin.ModelAdmin):
               'tea_duty_day2',
               )
 
+class MutfakAdmin(admin.ModelAdmin):
+
+    list_display = ('date', 'vosp1', 'vosp2')
+
 admin.site.register(Vosp, VospAdmin)
+admin.site.register(Mutfak, MutfakAdmin)
