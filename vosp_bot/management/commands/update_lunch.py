@@ -15,7 +15,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         queue = Vosp.objects.exclude(lunch_duty_day=None).order_by('lunch_duty_day')
-        old, last = queue[0], queue[-1]
+        old, last = queue[0], queue[len(queue)-1]
         if old.lunch_duty_day < datetime.date.today():
             old.lunch_duty_day = set_new_lunch_d(last.lunch_duty_day)
             old.save()

@@ -7,7 +7,7 @@ import requests
 import locale
 import datetime
 import time
-locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
+#locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
 
 bot = telebot.TeleBot(token)
 
