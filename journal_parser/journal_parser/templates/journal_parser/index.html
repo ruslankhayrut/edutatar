@@ -8,6 +8,10 @@
 
 </head>
 <body>
-<h1>Main page</h1>
+<form action="{% url 'act' %}" method="post">
+    {% csrf_token %}
+        <div><input type="submit" value="Проверить журналы" name="_journal"></div>
+
+</form>
 </body>
 </html>

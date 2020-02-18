@@ -14,7 +14,7 @@ class Vosp(models.Model):
 
 
 
-    class Meta():
+    class Meta:
         verbose_name = 'Воспитатель'
         verbose_name_plural = 'Воспитатели'
         ordering = ['name']
@@ -25,7 +25,7 @@ class Mutfak(models.Model):
     vosp1 = models.ForeignKey(Vosp, on_delete=models.CASCADE, related_name='duty1', verbose_name='Дежурный 1')
     vosp2 = models.ForeignKey(Vosp, on_delete=models.CASCADE, related_name='duty2', verbose_name='Дежурный 2')
 
-    class Meta():
+    class Meta:
         verbose_name = 'Дежурство в мутфаке'
         verbose_name_plural = 'Дежурства в мутфаке'
         ordering = ['date']

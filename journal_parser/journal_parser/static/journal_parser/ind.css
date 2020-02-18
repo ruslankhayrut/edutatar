@@ -1,5 +1,27 @@
 body {
+    padding-top: 12%;
     background-color: white;
+
+}
+
+
+
+h1 {
+    position: relative;
+    left: 61%;
+    color: black;
+}
+
+form {
+    position: relative;
+    display: table;
+    margin: auto;
+
+
+}
+
+div {
+    margin-right: 1%;
 }
 
 input[type=submit] {

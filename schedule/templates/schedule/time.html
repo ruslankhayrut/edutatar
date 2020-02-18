@@ -1,0 +1,16 @@
+ <div>
+         <p id="clock">
+             {{time}}
+         </p>
+         <div id="info">
+             {% if 'lesson_num' in info %}
+             <p>Идет {{info.lesson_num}} урок</p>
+             <p>Перемена начнется в {{info.lesson_end}}</p>
+             {% elif 'break_end' in info %}
+             <p>Идет перемена</p>
+             <p>Урок начнется в {{info.break_end}}</p>
+             {% else %}
+             <p>{{alt_message}}</p>
+             {% endif %}
+         </div>
+ </div>

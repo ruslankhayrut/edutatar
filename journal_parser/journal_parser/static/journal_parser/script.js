@@ -43,6 +43,6 @@ function term_marks() {
 
 window.onbeforeunload = function() {
     btn = document.getElementById('sbm');
-    btn.value = 'Подождите...';
+    btn.value = 'Пожалуйста, подождите...';
     btn.disabled = true;
 }

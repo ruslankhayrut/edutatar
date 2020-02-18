@@ -2,7 +2,6 @@ from django.shortcuts import render, HttpResponseRedirect, reverse, HttpResponse
 from django.http import JsonResponse
 from django.views import View
 from .tasks import exec
-import magic
 from celery import current_app
 from edutatar.celery import app
 import os
@@ -33,7 +32,7 @@ def process(request):
     fn = execute(context)
     path = os.path.join(FILES_DIR, fn)
     with open(path, 'rb') as fd:
-        mtype = magic.from_file(path, True)
+        mtype = 'application / vnd.openxmlformats - officedocument.spreadsheetml.sheet'
         response = HttpResponse(fd, content_type=mtype)
         response['Content-Disposition'] = 'attachment; filename="%s"' % fn
     os.remove(path)

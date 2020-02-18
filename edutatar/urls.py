@@ -28,6 +28,7 @@ urlpatterns = [
     path('journal/', include('journal_parser.urls')),
     path('vkrepost/', include('vkrepost.urls')),
     path('vospbot/', include('vosp_bot.urls')),
+    path('schedule/', include('schedule.urls')),
     path('', index, name='index'),
     path('act', act, name='act'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <title>Расписание</title>
+    <link rel="stylesheet" href="{% static 'schedule/index.css' %}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+</head>
+<body>
+<div id="all"></div>
+
+<script>
+    var data_url = "{% url 'schedule:time' %}"
+
+    var timedFunc = setInterval(function() {
+        axios.get(data_url)
+        .then(function(response) {
+            var placeholder = document.getElementById('all');
+            placeholder.innerHTML = response.data;
+            });
+
+    }, 1000)
+</script>
+</body>
+</html>

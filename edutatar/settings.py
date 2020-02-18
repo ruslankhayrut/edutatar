@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'journal_parser.apps.JournalParserConfig',
     'vkrepost.apps.VkrepostConfig',
     'vosp_bot.apps.VospBotConfig',
+    'schedule.apps.ScheduleConfig',
 ]
 
 
