@@ -4,15 +4,51 @@
     {% load static %}
     <meta charset="UTF-8">
     <title>Расписание</title>
-    <link rel="stylesheet" href="{% static 'schedule/index.css' %}">
+    <style>
+
+body {
+    font-family: Helvetica, sans-serif;
+    font-weight: bold;
+    height: 100%;
+    margin: 0;
+    color: white;
+    background-color: #44B27E;
+}
+
+html {
+    height: 100%;
+}
+
+#all {
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+#clock {
+    font-size: 50pt;
+}
+
+#info {
+    font-size: 25pt;
+}
+
+p {
+    margin: 0px;
+}
+  </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
 </head>
 <body>
-<div id="all"></div>
+<div id="all">
+</div>
 
 <script>
-    var data_url = "{% url 'schedule:time' %}"
 
+
+    var data_url = "{% url 'schedule:time' %}"
     var timedFunc = setInterval(function() {
         axios.get(data_url)
         .then(function(response) {
@@ -20,7 +56,7 @@
             placeholder.innerHTML = response.data;
             });
 
-    }, 1000)
+    }, 1000*30)
 </script>
 </body>
 </html>

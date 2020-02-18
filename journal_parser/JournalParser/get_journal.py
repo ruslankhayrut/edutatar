@@ -4,9 +4,9 @@ import datetime
 from bs4 import BeautifulSoup
 from .fill_checker import fill_checker
 from .str_to_date import str_to_date, m
-from .constants import STR_MARKS
+from .params import STR_MARKS
 
-def get_journal_info(data, moved_students=False):
+def get_journal_info(data):
 
     session = data['session']
     term = data['term']
@@ -18,7 +18,7 @@ def get_journal_info(data, moved_students=False):
 
     journal_url = 'https://edu.tatar.ru/school/journal/school_editor?term={0}' \
                   '&criteria={1}&edu_class_id={2}&' \
-                  'show_moved_pupils={3}'.format(term, criteria[0], class_id, int(moved_students))
+                  'show_moved_pupils=0'.format(term, criteria[0], class_id)
     journal = session.get(journal_url)
     html = BeautifulSoup(journal.text, 'html.parser')
 
@@ -29,28 +29,29 @@ def get_journal_info(data, moved_students=False):
     if teacher:
         try:
             teacher = teacher.text.strip().split(maxsplit=1)[1]
-        except IndexError as e:
-            print(journal_url, "Нет учителя и учеников.", e)
+        except IndexError:
             return False
 
-
-    pages = html.find('div', {'class': 'pages'})
-
-    pages = [p for p in pages.text.split() if (p.isdigit() or p == '>>')]
-
-    if pages:
-        if pages[-1] != '>>':
-            last_page = int(pages[-1])
-        else:
-            r = session.get('https://edu.tatar.ru/school/journal/school_editor?term={0}' \
-                  '&criteria={1}&edu_class_id={2}&' \
-                  'show_moved_pupils={3}&page={4}'.format(term, criteria[0], class_id, int(moved_students), int(pages[-2])+1))
-            html = BeautifulSoup(r.text, 'html.parser')
-            pages = html.find('div', {'class': 'pages'})
-            pages = [p for p in pages.text.split() if p.isdigit()]
-            last_page = int(pages[-1])
-    else:
+    if params.only_term:
         last_page = 1
+    else:
+        pages = html.find('div', {'class': 'pages'})
+
+        pages = [p for p in pages.text.split() if (p.isdigit() or p == '>>')]
+
+        if pages:
+            if pages[-1] != '>>':
+                last_page = int(pages[-1])
+            else:
+                r = session.get('https://edu.tatar.ru/school/journal/school_editor?term={0}' \
+                      '&criteria={1}&edu_class_id={2}&' \
+                      'show_moved_pupils=0&page={3}'.format(term, criteria[0], class_id, int(pages[-2])+1))
+                html = BeautifulSoup(r.text, 'html.parser')
+                pages = html.find('div', {'class': 'pages'})
+                pages = [p for p in pages.text.split() if p.isdigit()]
+                last_page = int(pages[-1])
+        else:
+            last_page = 1
 
 
     pagedata = {'teacher': teacher, 'term': int(term), 'subject': criteria[1][1], 'months': [], 'dates': [], 'lessons': [],
@@ -58,11 +59,12 @@ def get_journal_info(data, moved_students=False):
 
     cont = True
 
+
     for page in range(1, last_page+1): #look through the pages in the quarter
 
         journal_url = 'https://edu.tatar.ru/school/journal/school_editor?term={0}' \
                       '&criteria={1}&edu_class_id={2}&' \
-                      'show_moved_pupils={3}&page={4}'.format(term, criteria[0], class_id, int(moved_students), page)
+                      'show_moved_pupils=0&page={3}'.format(term, criteria[0], class_id, page)
         journal = session.get(journal_url)
         html = BeautifulSoup(journal.text, 'html.parser')
 
@@ -74,16 +76,16 @@ def get_journal_info(data, moved_students=False):
 
         dates, stop = create_dates(months, datenums, year)
 
-        meta_check = params.get('check_meta')
+        meta_check = params.check_meta
         lessons = get_lessons(html, len(dates), meta_check)
 
         pagedata['dates'] += dates
         pagedata['lessons'] += lessons
 
         req_marks = {
-            'common': (params.get('check_lessons_fill'), params.get('check_students_fill'),
-                       params.get('check_double_two')),
-            'term': params.get('check_term_marks')
+            'common': (params.check_lessons_fill, params.check_students_fill,
+                       params.check_double_two),
+            'term': params.check_term_marks
         }
 
         marks, term_marks, average_marks = get_marks(html, page, len(dates), req_marks)
@@ -100,7 +102,6 @@ def get_journal_info(data, moved_students=False):
 
         else:
             st = pagedata['students_count']
-            # assert st == len(marks), ('Количество учеников на страницах не совпадает', journal_url)
             for i in range(st):
                 pagedata['marks']['common'][i] += marks[i]
 
@@ -116,7 +117,9 @@ def get_journal_info(data, moved_students=False):
 
 def get_months(html):
     months_list = []
+
     months = html.find(text='Ученики').findAllNext('td', text=lambda text: text in m)
+
     for month in months:
         days = int(month['colspan'])
         months_list.append((month.text, days))
@@ -170,7 +173,7 @@ def get_marks(html, page, n, req_marks):
     term_marks = []
     average_marks = []
     for row in rows[:-2]: #remove service rows
-        if 'on' in req_marks['common']: # get common marks, if none is checked don't get them
+        if 'on' in req_marks['common']: #get common marks, if none is checked don't get them
             marks_row = []
             cols = row.find_all('td', {'class': 'mark'})
             for col in cols:

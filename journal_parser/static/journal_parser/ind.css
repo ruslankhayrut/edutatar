@@ -1,6 +1,13 @@
 body {
     background-color: white;
+
 }
+
+h1 {
+    position: relative;
+    color: black;
+}
+
 
 input[type=submit] {
     height: 30px;

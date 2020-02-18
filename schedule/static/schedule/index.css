@@ -4,6 +4,8 @@ body {
     font-weight: bold;
     height: 100%;
     margin: 0;
+    color: white;
+    background-color: #2F9F54;
 }
 
 html {

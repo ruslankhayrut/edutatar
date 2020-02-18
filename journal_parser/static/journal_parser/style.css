@@ -6,8 +6,7 @@ body {
     margin:0;
 }
 form#mainForm {
-    border: 1px solid #e6e6e6; /* Параметры границы */
-    padding: 10px; /* Поля вокруг текста */
+    /* Параметры границы */
     margin: 5% 20%;
 }
 
@@ -18,13 +17,25 @@ form#cancelForm {
     margin-top: 5px;
     margin-left: 0px;
 }
+hr {
+    border-top: 1px solid #cccccc;
+}
 
 p {
-    padding: 10px; /* Поля вокруг текста */
+    background-color: white;
+    padding: 25px 30px; /* Поля вокруг текста */
+
 }
+
 
 h1 {
     text-align: center;
+}
+
+.center {
+    text-align: center;
+    margin: 0px;
+    font-size: 16pt;
 }
 
 p#progress-title {

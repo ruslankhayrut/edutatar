@@ -1,4 +1,4 @@
-"""A part of this code was provided by Ramil Aglyamzyanov"""
+"""A part of this code was provided by Ramil Aglyamzanov"""
 
 import requests
 
@@ -15,15 +15,13 @@ def edu_auth(login, password):
 
     r = s.post("https://edu.tatar.ru/logon", headers=h,
                data={
-                   "redirect_url": "https://edu.tatar.ru/start/logon-process",
+                   #"redirect_url": "https://edu.tatar.ru/start/logon-process",
                    "main_login": login,
                    "main_password": password}
                )
     if 'Личный кабинет' in r.text:
         print('Успешный вход в аккаунт.')
     else:
-        print(
-            'Не удалось войти в аккаунт. Убедитесь, что вы верно ввели логин/пароль и двухфакторная аутентификация отключена.')
-        raise PermissionError
+        raise PermissionError('Не удалось войти в аккаунт. Убедитесь, что вы верно ввели логин/пароль и двухфакторная аутентификация отключена.')
 
     return s
