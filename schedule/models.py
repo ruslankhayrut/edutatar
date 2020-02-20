@@ -58,7 +58,7 @@ class Day(models.Model):
 
     schedule = models.ForeignKey(Schedule, verbose_name='Расписание', on_delete=models.SET(None), blank=True,
                                       null=True)
-    alt_message = models.TextField(verbose_name='Альтернативный текст', blank=True, null=True, default='Уроки закончились=)')
+    alt_message = models.TextField(verbose_name='Альтернативный текст', blank=True, null=True)
 
     @property
     def weekday_str(self):

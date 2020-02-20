@@ -6,6 +6,8 @@
              {% elif 'break_end' in info %}
              <p>Идет перемена</p>
              <p>Урок начнется в {{info.break_end}}</p>
+             {% elif 'first_lesson_start' in info %}
+             <p>Первый урок начнется в {{info.first_lesson_start}}</p>
              {% else %}
              <p>{{alt_message}}</p>
              {% endif %}
