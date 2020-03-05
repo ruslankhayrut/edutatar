@@ -7,7 +7,7 @@ import requests
 import locale
 import datetime
 import time
-#locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
+locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
 
 bot = telebot.TeleBot(token)
 
@@ -96,7 +96,29 @@ def show_mutfak_schedule(message):
     else:
         bot.send_message(user, 'Доступ запрещен')
 
+@bot.message_handler(commands=['plus_day'])
+def plus_lunch_duty(message):
+    user = message.chat.id
+    if user == owner_id:
+        queue = Vosp.objects.exclude(lunch_duty_day=None).order_by('-lunch_duty_day')
+        for vosp in queue:
+            vosp.change_day()
+            vosp.save()
+        bot.send_message(user, 'Дежурства перенесены на день вперед')
+    else:
+        bot.send_message(user, 'Вы не можете использовать эту команду')
 
+@bot.message_handler(commands=['minus_day'])
+def minus_lunch_duty(message):
+    user = message.chat.id
+    if user == owner_id:
+        queue = Vosp.objects.exclude(lunch_duty_day=None).order_by('-lunch_duty_day')
+        for vosp in queue:
+            vosp.change_day(val=-1)
+            vosp.save()
+        bot.send_message(user, 'Дежурства перенесены на день назад')
+    else:
+        bot.send_message(user, 'Вы не можете использовать эту команду')
 
 @bot.message_handler(content_types=['text'])
 def text_handler(message):

@@ -1,5 +1,5 @@
 from django.db import models
-
+import datetime
 
 class Vosp(models.Model):
 
@@ -12,6 +12,12 @@ class Vosp(models.Model):
     def __str__(self):
         return self.name
 
+    def change_day(self, val=1):
+        if (self.lunch_duty_day + datetime.timedelta(days=val)).isoweekday() not in (5, 6):
+            self.lunch_duty_day += datetime.timedelta(days=val)
+        else:
+            self.lunch_duty_day += datetime.timedelta(days=(3 if val > 0 else -3))
+            # if increase possible only thu -> sun  if decrease possible inly sun -> thu
 
 
     class Meta:
