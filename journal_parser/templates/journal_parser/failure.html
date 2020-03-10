@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Failure</title>
+</head>
+<body>
+<h1>Couldn't submit form data</h1>
+<h3>You didn't fill the following fields out</h3>
+{% for val in values %}
+    <p>{{val}}</p>
+{% endfor %}
+</body>
+</html>

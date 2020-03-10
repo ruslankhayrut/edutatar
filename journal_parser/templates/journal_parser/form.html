@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Form</title>
+</head>
+<body>
+<form method="post">
+    {%csrf_token%}
+    <input type="text" name="name">Введите имя
+    <br>
+    <br>
+    <input type="text" name="surname">Введите фамилию
+    <br>
+    <br>
+    <input type="number" name="age">Введите возраст
+    <br>
+    <br>
+    <input type="email" name="email">Email
+    <br>
+    <br>
+    <input type="text" name="phone">Телефон
+    <br>
+    <br>
+    <input type="checkbox" name="notify">Уведомлять меня о новых записях
+    <br>
+    <br>
+    <input type="submit" value="Готово!">
+</form>
+</body>
+</html>

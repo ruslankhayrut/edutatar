@@ -3,8 +3,10 @@ import os
 from edutatar.settings import FILES_DIR
 from .JournalParser.main import execute
 from .JournalParser.params import KEYS
+from django.views.decorators.csrf import csrf_exempt
 
 
+#TODO: remove trial view etc
 def index(request):
     return render(request, 'journal_parser/index.html')
 
@@ -28,6 +30,21 @@ def process(request):
     os.remove(path)
     return response
 
+@csrf_exempt
+def form(request):
+    if request.method == 'POST':
+        data = dict(request.POST)
+        vls = []
+        for key, val in data.items():
+            if not val[0]:
+                vls.append(key)
+        if vls:
+            context = {'values': vls}
+            return render(request, 'journal_parser/failure.html', context)
+        return render(request, 'journal_parser/success.html')
+
+    else:
+        return render(request, 'journal_parser/form.html')
 
 def act(request):
     if '_journal' in request.POST:
