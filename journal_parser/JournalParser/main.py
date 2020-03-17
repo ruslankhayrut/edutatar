@@ -4,11 +4,11 @@ import openpyxl
 import re
 import datetime
 from bs4 import BeautifulSoup
-from .edutatarauth import edu_auth
-from .get_journal import get_journal_info
-from .params import Params
+from journal_parser.JournalParser.edutatarauth import edu_auth
+from journal_parser.JournalParser.get_journal import get_journal_info
+from journal_parser.JournalParser.params import Params
 from edutatar.settings import FILES_DIR
-
+import cProfile
 
 def get_years(session):
     r = session.get('https://edu.tatar.ru/school')
@@ -23,7 +23,7 @@ def execute(params):
 
     params = Params(params)
 
-
+    print(params.login, params.password)
     session = edu_auth(params.login, params.password)
     session.get('https://edu.tatar.ru')
 
@@ -107,3 +107,28 @@ def execute(params):
     table.save(filepath)
 
     return filename
+
+params = {
+    'login': '5162000568',
+    'password': 'Huawei+#1',
+    'class1': '6',
+    'class2': '6',
+    'term1': '1',
+    'term2': '3',
+    'min_for_5': '4.5',
+    'min_for_4': '3.5',
+    'min_for_3': '2.5',
+    'lesson_percent': '25',
+    'term_percent': '30',
+    'check_RO': 'on',
+    'check_lessons_fill': 'on',
+    'check_meta': 'on',
+    'check_students_fill': 'on',
+    'check_double_two': 'on',
+    'check_term_marks': 'on',
+    'allowed_not_row': '',
+
+}
+
+#execute(params)
+cProfile.run('execute(params)', sort='time')

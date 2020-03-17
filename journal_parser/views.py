@@ -1,12 +1,13 @@
 from django.shortcuts import render, HttpResponseRedirect, reverse, HttpResponse
+from django.http import JsonResponse
+from django.core.exceptions import ObjectDoesNotExist
 import os
 from edutatar.settings import FILES_DIR
 from .JournalParser.main import execute
 from .JournalParser.params import KEYS
 from django.views.decorators.csrf import csrf_exempt
+from .models import Login
 
-
-#TODO: remove trial view etc
 def index(request):
     return render(request, 'journal_parser/index.html')
 
@@ -31,20 +32,19 @@ def process(request):
     return response
 
 @csrf_exempt
-def form(request):
+def login_check(request):
     if request.method == 'POST':
-        data = dict(request.POST)
-        vls = []
-        for key, val in data.items():
-            if not val[0]:
-                vls.append(key)
-        if vls:
-            context = {'values': vls}
-            return render(request, 'journal_parser/failure.html', context)
-        return render(request, 'journal_parser/success.html')
+        login = int(dict(request.POST).get('login', '1'))
+        try:
+            l = Login.objects.get(login_int=login)
+            return JsonResponse({"status": True})
+        except ObjectDoesNotExist:
+            return JsonResponse({"status": False})
 
-    else:
-        return render(request, 'journal_parser/form.html')
+
+
+
+
 
 def act(request):
     if '_journal' in request.POST:

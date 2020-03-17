@@ -24,20 +24,20 @@ class Params:
     def set_attributes(self, kwargs):
         for key, val in kwargs.items():
             if key in TO_FLOAT:
-                val = float(val[0])
+                val = float(val)
                 setattr(self, key, val)
             elif key in TO_INT:
-                val = int(val[0])
+                val = int(val)
                 setattr(self, key, val)
             elif key == 'allowed_not_row' and val:
-                allowed_not_row = re.findall('[А-Яа-яЁё]+', val[0])
+                allowed_not_row = re.findall('[А-Яа-яЁё]+', val)
                 for e in range(len(allowed_not_row)):
                     allowed_not_row[e] = allowed_not_row[e][0].upper() + allowed_not_row[e][1:].lower()
 
                 val = tuple(allowed_not_row)
                 setattr(self, key, val)
             else:
-                setattr(self, key, val[0])
+                setattr(self, key, val)
 
 
         if self.class1 > self.class2:
