@@ -42,7 +42,7 @@ def post_news(data):
     text = strip_emoji(data['text'])
 
     date = data['date']
-    photo_url = data['photo']['photo_url']
+    photo_url = data['photo'].get('photo_url')
     title = data['title']
 
     if not title:
