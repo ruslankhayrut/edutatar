@@ -87,7 +87,11 @@ p {
 
             if (l_st_time <= now_time && now_time <= l_en_time) {
                 l_number = lesson.number
-                l_end = `${l_en_time.getHours()}:${l_en_time.getMinutes()}`
+              	end_mins = l_en_time.getMinutes()
+              	if (end_mins < 10) {
+                	end_mins = `0${end_mins}`
+                }
+                l_end = `${l_en_time.getHours()}:${end_mins}`
                 html = `<p>Идет ${l_number} урок</p><p>Перемена начнется в ${l_end}</p>`
                 return html
             }
@@ -102,7 +106,11 @@ p {
 
             console.log(br_st_time, br_en_time)
             if (br_st_time < now_time && now_time < br_en_time) {
-                br_end = `${br_en_time.getHours()}:${br_en_time.getMinutes()}`
+              	end_mins = br_en_time.getMinutes()
+              	if (end_mins < 10) {
+                  end_mins = `0${end_mins}`
+                }
+                br_end = `${br_en_time.getHours()}:${end_mins}`
                 html = `{<p>Идет перемена</p><p>Урок начнется в ${br_end}</p>`
                 return html
             }
