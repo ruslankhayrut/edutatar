@@ -1,14 +1,6 @@
 from django.db import models
 
 
-class Reader(models.Model):
-    phone = models.CharField(max_length=100, verbose_name='Телефон', null=True, blank=True)
-    tg_id = models.IntegerField(verbose_name='Telegram ID', null=True, blank=True)
-
-    def __str__(self):
-        return self.name if self.name else self.pk
-
-
 class Hatim(models.Model):
 
     def save(self, *args, **kwargs):
@@ -23,7 +15,6 @@ class Hatim(models.Model):
 class Juz(models.Model):
 
     hatim = models.ForeignKey(Hatim, verbose_name='Хатим', on_delete=models.CASCADE)
-    reader = models.OneToOneField(Reader, verbose_name='Читает', on_delete=models.CASCADE, blank=True, null=True)
     STATUS = ((1, 'Свободен'), (2, 'Читается'), (3, 'Завершен'))
     status = models.PositiveSmallIntegerField(verbose_name='Статус', choices=STATUS, default=1)
 
@@ -39,3 +30,10 @@ class Juz(models.Model):
 
     class Meta:
         ordering = ['pk']
+
+class Reader(models.Model):
+    tg_id = models.IntegerField(verbose_name='Telegram ID', null=True, blank=True)
+    taken_juz = models.OneToOneField(Juz, verbose_name='Взял главу', on_delete=models.CASCADE, blank=True, null=True)
+
+    def __str__(self):
+        return str(self.tg_id)

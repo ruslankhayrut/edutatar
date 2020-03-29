@@ -4,14 +4,17 @@ from django.views.decorators.csrf import csrf_exempt
 from .config import token, owner_id
 from .models import *
 import telebot
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, \
+    ReplyKeyboardMarkup, ReplyKeyboardRemove, \
+    KeyboardButton, CallbackQuery
 import requests
 import datetime
 import time
 
 
 bot = telebot.TeleBot(token)
-keyboard = InlineKeyboardMarkup()
+inline_keyboard = InlineKeyboardMarkup()
+reply_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
 
 @csrf_exempt
 def index(request):
@@ -44,22 +47,43 @@ def set_webhook(request):
 @bot.callback_query_handler(func=lambda c: c.data.split('/')[0] == 'take')
 def take_juz(callback_query: CallbackQuery):
     user = callback_query.from_user.id
+    reader = Reader.objects.get(tg_id=user)
 
     juz_id = callback_query.data.split('/')[-1]
-
 
     taken_juz = Juz.objects.get(pk=juz_id)
     taken_juz.status = 2
     taken_juz.save()
 
+    reader.taken_juz = taken_juz
+    reader.save()
+
     bot.answer_callback_query(callback_query.id)
-    bot.send_message(user, 'Вы взяли {} главу!'.format(taken_juz.number))
+
+    button1 = KeyboardButton('Я прочитал {} главу'.format(taken_juz.number))
+    button2 = KeyboardButton('Отказаться от главы')
+    reply_keyboard.add(button1, button2)
+
+    bot.send_message(user, 'Вы взяли {} главу'.format(taken_juz.number), reply_markup=reply_keyboard)
+
+@bot.message_handler(commands=['start'])
+def start(message):
+    user = message.chat.id
+
+    reader, created = Reader.objects.get_or_create(tg_id=user)
+
+    if reader.taken_juz:
+        button1 = KeyboardButton('Я прочитал {} главу'.format(reader.taken_juz.number))
+        button2 = KeyboardButton('Отказаться от главы')
+        reply_keyboard.add(button1, button2)
+    else:
+        button = KeyboardButton('Взять главу')
+        reply_keyboard.add(button)
+
+    bot.send_message(user, 'Hello', reply_markup=reply_keyboard)
 
 
-
-@bot.message_handler(commands=['take'])
 def take(message):
-
     user = message.chat.id
     latest_hatim = Hatim.objects.latest('pk')
 
@@ -73,16 +97,25 @@ def take(message):
         juz = Juz.objects.filter(hatim=new_hatim)
 
     take_btn = InlineKeyboardButton('Взять {} главу'.format(juz.number), callback_data='take/{}'.format(juz.id))
-    keyboard.add(take_btn)
-    bot.send_message(user, '{} глава'.format(juz.number), reply_markup=keyboard)
+    inline_keyboard.add(take_btn)
+    bot.send_message(user, '{} глава'.format(juz.number), reply_markup=inline_keyboard)
 
 
 
 @bot.message_handler(content_types=['text'])
 def text_handler(message):
     text = message.text
+    user = message.chat.id
+    reader = Reader.objects.get(tg_id=user)
+
     if text.lower() == 'мой id':
         bot.send_message(message.chat.id, str(message.chat.id))
+    elif text == 'Взять главу':
+        take(message)
+    elif text == 'Я прочитал {} главу'.format(reader.taken_juz.number):
+        pass
+    elif text == 'Отказаться от главы':
+        pass
     else:
         bot.send_message(message.chat.id, message.text)
 
