@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'vkrepost.apps.VkrepostConfig',
     'vosp_bot.apps.VospBotConfig',
     'schedule.apps.ScheduleConfig',
+    'hatim_bot.apps.HatimBotConfig',
 ]
 
 
