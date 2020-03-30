@@ -86,6 +86,20 @@ def start(message):
 
     bot.send_message(user, 'Hello!', reply_markup=reply_keyboard)
 
+@bot.message_handler(commands=['help'])
+def help(message):
+    user = message.chat.id
+
+    help_text = 'Доступные команды:\n' \
+                '/start\n' \
+                '/help\n\n' \
+                'Если вы взяли главу, а клавиатура вдруг не обновилась, отправьте боту сообщение ' \
+                '"Я прочитал ... главу" (если вы прочитали эту главу) или ' \
+                '"Отказаться от главы" (если вы хотите попробовать взять другую главу)\n\n' \
+                'Если вы еще не взяли главу, а соответствующая кнопка почему-то не появилась, отправьте боту сообщение ' \
+                '"Взять главу"'
+
+    bot.send_message(user, help_text)
 
 def take(user):
 
