@@ -48,22 +48,30 @@ def take_juz(callback_query: CallbackQuery):
 
     user = callback_query.from_user.id
     reader = Reader.objects.get(tg_id=user)
+
     if not reader.taken_juz:
-        juz_id = callback_query.data.split('/')[-1]
+        data = callback_query.data.split('/')
+        juz_num, hatim_id = data[1], data[2]
 
-        taken_juz = Juz.objects.get(pk=juz_id)
-        taken_juz.status = 2
-        taken_juz.save()
+        hatim = Hatim.objects.get(pk=hatim_id)
 
-        reader.taken_juz = taken_juz
-        reader.take_date = datetime.datetime.now()
-        reader.save()
+        taken_juz, created = Juz.objects.get_or_create(hatim=hatim, number=juz_num)
 
-        button1 = KeyboardButton('Я прочитал {} главу'.format(taken_juz.number))
-        button2 = KeyboardButton('Отказаться от главы')
-        reply_keyboard.add(button1, button2)
+        if taken_juz.status == 1:
+            taken_juz.status = 2
+            taken_juz.save()
 
-        bot.send_message(user, 'Вы взяли {} главу'.format(taken_juz.number), reply_markup=reply_keyboard)
+            reader.taken_juz = taken_juz
+            reader.take_date = datetime.datetime.now()
+            reader.save()
+
+            button1 = KeyboardButton('Я прочитал {} главу'.format(juz_num))
+            button2 = KeyboardButton('Отказаться от главы')
+            reply_keyboard.add(button1, button2)
+
+            bot.send_message(user, 'Вы взяли {} главу'.format(juz_num), reply_markup=reply_keyboard)
+        else:
+            bot.send_message(user, 'Извините, эту главу уже взяли. Пожалуйста, выберите другую.')
 
     else:
         bot.send_message(user, 'Вы уже взяли главу {}'.format(reader.taken_juz.number))
@@ -105,26 +113,54 @@ def take(user):
 
     not_finished_hatims = Hatim.objects.filter(finished=False)
 
-    free_juzes = []
+    free_juzes = None #contains numbers
+    working_htm = None #hatim id
+
     for hatim in not_finished_hatims:
-        free_juzes = Juz.objects.filter(hatim=hatim, status=1) #htm may be not finished but with no free juzes
-        if free_juzes:
-            break
+        this_juzes = Juz.objects.filter(hatim=hatim)
+        j_count = len(this_juzes)
+        free_j = [juz.number for juz in this_juzes if juz.status == 1] #htm may be not finished but with no free juzes
 
-    if free_juzes:
-        juz1 = free_juzes[0]
-        take_btn = InlineKeyboardButton('Взять {} главу'.format(juz1.number), callback_data='take/{}'.format(juz1.id))
-        inline_keyboard.add(take_btn)
+        if free_j and j_count == 30:
+            free_juzes = free_j
+            working_htm = hatim.id
 
-        if len(free_juzes) > 1:
-            juz2 = choice(free_juzes[1:])
-            take_btn2 = InlineKeyboardButton('Взять {} главу'.format(juz2.number), callback_data='take/{}'.format(juz2.id))
-            inline_keyboard.add(take_btn2)
+        elif free_j and j_count < 30:
+            free_juzes = [free_j[0]]
 
-        bot.send_message(user, 'Выберите главу', reply_markup=inline_keyboard)
+            all_possible_nums = range(1, 31)
+            already_exist = [juz.number for juz in this_juzes]
+            free_numbers = list(set(all_possible_nums).difference(set(already_exist)))
 
-    else:
-        bot.send_message(user, 'Упс...\nГлавы закончились и не успели обновиться. Пожалуйста, обратитесь к администратору.')
+            free_juzes.append(choice(free_numbers))
+            working_htm = hatim.id
+
+        elif not free_j and j_count < 30:
+            all_possible_nums = range(1, 31)
+            already_exist = [juz.number for juz in this_juzes]
+            free_numbers = list(set(all_possible_nums).difference(set(already_exist)))
+
+            free_juzes = [choice(free_numbers), choice(free_numbers)]
+
+            working_htm = hatim.id
+
+    if not free_juzes:
+        working_htm = Hatim.objects.create().id
+        free_juzes = [1, choice(range(2, 31))]
+
+    juz1 = free_juzes[0]
+    take_btn = InlineKeyboardButton('Взять {} главу'.format(juz1), callback_data='take/{}/{}'.format(juz1, working_htm))
+    inline_keyboard.add(take_btn)
+
+    if len(free_juzes) > 1:
+        juz2 = choice(free_juzes[1:])
+        take_btn2 = InlineKeyboardButton('Взять {} главу'.format(juz2), callback_data='take/{}/{}'.format(juz2, working_htm))
+        inline_keyboard.add(take_btn2)
+
+
+    bot.send_message(user, 'Выберите главу', reply_markup=inline_keyboard)
+
+
 
 def finish(user, reader, juz_id):
     finished_juz = Juz.objects.get(pk=juz_id)

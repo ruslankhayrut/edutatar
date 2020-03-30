@@ -8,8 +8,7 @@ class Hatim(models.Model):
     def save(self, *args, **kwargs):
         super(Hatim, self).save(*args, **kwargs)
         if not Juz.objects.filter(hatim=self):
-            for i in range(1, 31):
-                Juz.objects.create(hatim=self, number=i)
+            Juz.objects.create(hatim=self, number=1)
 
     def __str__(self):
         return 'Hatim {}'.format(self.pk)
