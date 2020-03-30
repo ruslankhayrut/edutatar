@@ -3,6 +3,8 @@ from django.db import models
 
 class Hatim(models.Model):
 
+    finished = models.BooleanField(verbose_name='Завершено', default=False)
+
     def save(self, *args, **kwargs):
         super(Hatim, self).save(*args, **kwargs)
         for i in range(30):
