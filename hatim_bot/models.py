@@ -7,8 +7,9 @@ class Hatim(models.Model):
 
     def save(self, *args, **kwargs):
         super(Hatim, self).save(*args, **kwargs)
-        for i in range(30):
-            Juz.objects.create(hatim=self)
+        if not Juz.objects.filter(hatim=self):
+            for i in range(1, 31):
+                Juz.objects.create(hatim=self, number=i)
 
     def __str__(self):
         return 'Hatim {}'.format(self.pk)
@@ -19,23 +20,26 @@ class Juz(models.Model):
     hatim = models.ForeignKey(Hatim, verbose_name='Хатим', on_delete=models.CASCADE)
     STATUS = ((1, 'Свободен'), (2, 'Читается'), (3, 'Завершен'))
     status = models.PositiveSmallIntegerField(verbose_name='Статус', choices=STATUS, default=1)
+    number = models.PositiveSmallIntegerField(verbose_name='Номер', null=True)
 
-    @property
-    def number(self):
-        n = self.pk % 30
-        if not n:
-            n = 30
-        return n
 
     def __str__(self):
-        return 'Juz {} | {}'.format(self.number, self.hatim)
+        return 'Juz {}'.format(self.number)
 
     class Meta:
-        ordering = ['pk']
+        ordering = ['hatim', 'number']
 
 class Reader(models.Model):
     tg_id = models.IntegerField(verbose_name='Telegram ID', null=True, blank=True)
-    taken_juz = models.OneToOneField(Juz, verbose_name='Взял главу', on_delete=models.CASCADE, blank=True, null=True)
+    taken_juz = models.OneToOneField(Juz, verbose_name='Взял главу', on_delete=models.SET_NULL, blank=True, null=True)
+    take_date = models.DateTimeField(verbose_name='Дата взятия главы', null=True, blank=True)
 
     def __str__(self):
         return str(self.tg_id)
+
+class HCount(models.Model):
+
+    value = models.PositiveSmallIntegerField(verbose_name='Значение', default=0)
+
+    def __str__(self):
+        return 'Счетчик завершенных книг'

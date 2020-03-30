@@ -1,12 +1,11 @@
 from django.shortcuts import render, HttpResponse
-from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.csrf import csrf_exempt
 from .config import token, owner_id
 from .models import *
 import telebot
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, \
-    ReplyKeyboardMarkup, ReplyKeyboardRemove, \
-    KeyboardButton, CallbackQuery
+    ReplyKeyboardMarkup, KeyboardButton, CallbackQuery
+from random import choice
 import requests
 import datetime
 import time
@@ -46,25 +45,30 @@ def set_webhook(request):
 
 @bot.callback_query_handler(func=lambda c: c.data.split('/')[0] == 'take')
 def take_juz(callback_query: CallbackQuery):
+
     user = callback_query.from_user.id
     reader = Reader.objects.get(tg_id=user)
+    if not reader.taken_juz:
+        juz_id = callback_query.data.split('/')[-1]
 
-    juz_id = callback_query.data.split('/')[-1]
+        taken_juz = Juz.objects.get(pk=juz_id)
+        taken_juz.status = 2
+        taken_juz.save()
 
-    taken_juz = Juz.objects.get(pk=juz_id)
-    taken_juz.status = 2
-    taken_juz.save()
+        reader.taken_juz = taken_juz
+        reader.take_date = datetime.datetime.now()
+        reader.save()
 
-    reader.taken_juz = taken_juz
-    reader.save()
+        button1 = KeyboardButton('Я прочитал {} главу'.format(taken_juz.number))
+        button2 = KeyboardButton('Отказаться от главы')
+        reply_keyboard.add(button1, button2)
+
+        bot.send_message(user, 'Вы взяли {} главу'.format(taken_juz.number), reply_markup=reply_keyboard)
+
+    else:
+        bot.send_message(user, 'Вы уже взяли главу {}'.format(reader.taken_juz.number))
 
     bot.answer_callback_query(callback_query.id)
-
-    button1 = KeyboardButton('Я прочитал {} главу'.format(taken_juz.number))
-    button2 = KeyboardButton('Отказаться от главы')
-    reply_keyboard.add(button1, button2)
-
-    bot.send_message(user, 'Вы взяли {} главу'.format(taken_juz.number), reply_markup=reply_keyboard)
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -80,38 +84,62 @@ def start(message):
         button = KeyboardButton('Взять главу')
         reply_keyboard.add(button)
 
-    bot.send_message(user, 'Hello', reply_markup=reply_keyboard)
+    bot.send_message(user, 'Hello!', reply_markup=reply_keyboard)
 
 
-def take(message):
-    user = message.chat.id
-    latest_hatim = Hatim.objects.latest('pk')
+def take(user):
 
-    free_juzes = Juz.objects.filter(hatim=latest_hatim, status=1)
+    not_finished_hatims = Hatim.objects.filter(finished=False)
+
+    free_juzes = []
+    for hatim in not_finished_hatims:
+        free_juzes = Juz.objects.filter(hatim=hatim, status=1) #htm may be not finished but with no free juzes
+        if free_juzes:
+            break
 
     if free_juzes:
-        juz = free_juzes[0]
+        juz1 = free_juzes[0]
+        take_btn = InlineKeyboardButton('Взять {} главу'.format(juz1.number), callback_data='take/{}'.format(juz1.id))
+        inline_keyboard.add(take_btn)
+
+        if len(free_juzes) > 1:
+            juz2 = choice(free_juzes[1:])
+            take_btn2 = InlineKeyboardButton('Взять {} главу'.format(juz2.number), callback_data='take/{}'.format(juz2.id))
+            inline_keyboard.add(take_btn2)
+
+        bot.send_message(user, 'Выберите главу', reply_markup=inline_keyboard)
 
     else:
-        new_hatim = Hatim.objects.create()
-        juz = Juz.objects.filter(hatim=new_hatim)
-
-    take_btn = InlineKeyboardButton('Взять {} главу'.format(juz.number), callback_data='take/{}'.format(juz.id))
-    inline_keyboard.add(take_btn)
-    bot.send_message(user, '{} глава'.format(juz.number), reply_markup=inline_keyboard)
+        bot.send_message(user, 'Упс...\nГлавы закончились и не успели обновиться. Пожалуйста, обратитесь к администратору.')
 
 def finish(user, reader, juz_id):
     finished_juz = Juz.objects.get(pk=juz_id)
     finished_juz.status = 3
     finished_juz.save()
 
+    msg = 'Спасибо!'
+
+    hatim = finished_juz.hatim
+    finished_juzes = Juz.objects.filter(hatim=hatim, status=3)
+
+    if len(finished_juzes) == 30:
+        hatim.finished = True
+        hatim.save()
+        counter = HCount.objects.get()
+        counter.value += 1
+        counter.save()
+        msg += '\nВы дочитали последнюю главу книги. Пожалуйста, прочитайте дополнительный контент.'
+
     reader.taken_juz = None
+    reader.take_date = None
     reader.save()
 
     button = KeyboardButton('Взять главу')
     reply_keyboard.add(button)
 
-    bot.send_message(user, 'Спасибо 👍', reply_markup=reply_keyboard)
+    bot.send_message(user, msg, reply_markup=reply_keyboard)
+
+
 
 def reject(user, reader, juz_id):
     rej_juz = Juz.objects.get(pk=juz_id)
@@ -119,12 +147,13 @@ def reject(user, reader, juz_id):
     rej_juz.save()
 
     reader.taken_juz = None
+    reader.take_date = None
     reader.save()
 
     button = KeyboardButton('Взять главу')
     reply_keyboard.add(button)
 
-    bot.send_message(user, 'Жаль 😔', reply_markup=reply_keyboard)
+    bot.send_message(user, 'Жаль =(', reply_markup=reply_keyboard)
 
 @bot.message_handler(content_types=['text'])
 def text_handler(message):
@@ -134,7 +163,7 @@ def text_handler(message):
     taken_juz = reader.taken_juz
 
     if text == 'Взять главу':
-        take(message)
+        take(user)
     elif taken_juz and text == 'Я прочитал {} главу'.format(taken_juz.number):
         finish(user, reader, taken_juz.id)
     elif taken_juz and text == 'Отказаться от главы':
