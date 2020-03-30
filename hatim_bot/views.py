@@ -100,22 +100,45 @@ def take(message):
     inline_keyboard.add(take_btn)
     bot.send_message(user, '{} глава'.format(juz.number), reply_markup=inline_keyboard)
 
+def finish(user, reader, juz_id):
+    finished_juz = Juz.objects.get(pk=juz_id)
+    finished_juz.status = 3
+    finished_juz.save()
 
+    reader.taken_juz = None
+    reader.save()
+
+    button = KeyboardButton('Взять главу')
+    reply_keyboard.add(button)
+
+    bot.send_message(user, 'Спасибо 👍', reply_markup=reply_keyboard)
+
+def reject(user, reader, juz_id):
+    rej_juz = Juz.objects.get(pk=juz_id)
+    rej_juz.status = 1
+    rej_juz.save()
+
+    reader.taken_juz = None
+    reader.save()
+
+    button = KeyboardButton('Взять главу')
+    reply_keyboard.add(button)
+
+    bot.send_message(user, 'Жаль 😔', reply_markup=reply_keyboard)
 
 @bot.message_handler(content_types=['text'])
 def text_handler(message):
     text = message.text
     user = message.chat.id
     reader = Reader.objects.get(tg_id=user)
+    taken_juz = reader.taken_juz
 
-    if text.lower() == 'мой id':
-        bot.send_message(message.chat.id, str(message.chat.id))
-    elif text == 'Взять главу':
+    if text == 'Взять главу':
         take(message)
-    elif text == 'Я прочитал {} главу'.format(reader.taken_juz.number):
-        pass
-    elif text == 'Отказаться от главы':
-        pass
+    elif taken_juz and text == 'Я прочитал {} главу'.format(taken_juz.number):
+        finish(user, reader, taken_juz.id)
+    elif taken_juz and text == 'Отказаться от главы':
+        reject(user, reader, taken_juz.id)
     else:
         bot.send_message(message.chat.id, message.text)
 
