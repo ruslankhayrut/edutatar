@@ -12,7 +12,7 @@ make_unread.short_description = 'Сделать свободными'
 
 class JuzAdmin(admin.ModelAdmin):
     actions = [make_unread]
-    list_display = ('pk', 'hatim', 'number', 'status')
+    list_display = ('hatim', 'number', 'status', 'reader')
     list_filter = ('hatim', )
 
 class JuzInline(admin.TabularInline):
