@@ -1,5 +1,5 @@
 from django.db import models
-
+import datetime
 
 class Hatim(models.Model):
 
@@ -9,6 +9,15 @@ class Hatim(models.Model):
         super(Hatim, self).save(*args, **kwargs)
         if not Juz.objects.filter(hatim=self):
             Juz.objects.create(hatim=self, number=1)
+
+    def check_finished(self):
+
+        fin = len(Juz.objects.filter(hatim=self, status=3)) == 30
+        if fin:
+            self.finished = True
+            self.save()
+            return True
+        return False
 
     def __str__(self):
         return 'Hatim {}'.format(self.pk)
@@ -21,6 +30,9 @@ class Juz(models.Model):
     status = models.PositiveSmallIntegerField(verbose_name='Статус', choices=STATUS, default=1)
     number = models.PositiveSmallIntegerField(verbose_name='Номер', null=True)
 
+    def set_status(self, status):
+        self.status = status
+        self.save()
 
     def __str__(self):
         return 'Juz {}'.format(self.number)
@@ -33,12 +45,21 @@ class Reader(models.Model):
     taken_juz = models.OneToOneField(Juz, verbose_name='Взял главу', on_delete=models.SET_NULL, blank=True, null=True)
     take_date = models.DateTimeField(verbose_name='Дата взятия главы', null=True, blank=True)
 
+    def take_juz(self, juz):
+        self.taken_juz = juz
+        self.take_date = datetime.datetime.now() if juz else None
+        self.save()
+
     def __str__(self):
         return str(self.tg_id)
 
 class HCount(models.Model):
 
     value = models.PositiveSmallIntegerField(verbose_name='Значение', default=0)
+
+    def increment(self):
+        self.value += 1
+        self.save()
 
     def __str__(self):
         return 'Счетчик завершенных книг'
