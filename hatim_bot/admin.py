@@ -38,8 +38,11 @@ class HatimAdmin(admin.ModelAdmin):
 class CounterAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'value')
 
+class ReaderAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'taken_juz', 'take_date', 'read_counter')
+
 
 admin.site.register(Hatim, HatimAdmin)
 admin.site.register(Juz, JuzAdmin)
-admin.site.register(Reader)
+admin.site.register(Reader, ReaderAdmin)
 admin.site.register(HCount, CounterAdmin)
