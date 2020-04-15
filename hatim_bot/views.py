@@ -46,12 +46,13 @@ def set_webhook(request):
             return HttpResponse('<h1>Bot greets you</h1>')
     return HttpResponse('<h1>Something went wrong</h1>')
 
+
 @bot.callback_query_handler(func=lambda c: c.data.split('/')[0] == 'take')
 def take_juz(callback_query: CallbackQuery):
 
     user = callback_query.from_user.id
     reader = Reader.objects.get(tg_id=user)
-    reply_keyboard = ReplyKeyboardMarkup()
+
     if not reader.taken_juz:
         data = callback_query.data.split('/')
         juz_num, hatim_id = data[1], data[2]
@@ -61,12 +62,9 @@ def take_juz(callback_query: CallbackQuery):
         taken_juz, created = Juz.objects.get_or_create(hatim=hatim, number=juz_num)
 
         if taken_juz.status == 1:
-            taken_juz.status = 2
-            taken_juz.save()
 
-            reader.taken_juz = taken_juz
-            reader.take_date = datetime.datetime.now()
-            reader.save()
+            taken_juz.set_status(2)
+            reader.take_juz(taken_juz)
 
             bot.send_message(user, 'Вы взяли {} главу'.format(juz_num), reply_markup=finish_reject_kb)
         else:
@@ -140,12 +138,12 @@ def take(user):
             working_htm = hatim.id
 
     if not free_juzes:
-        working_htm = Hatim.objects.create().id
+        new_htm = Hatim.objects.create()
+        working_htm = new_htm.id
         free_juzes = [1, choice(range(2, 31))]
 
     juz1 = free_juzes[0]
     take_btn = InlineKeyboardButton('Взять {} главу'.format(juz1), callback_data='take/{}/{}'.format(juz1, working_htm))
-
     inline_keyboard.add(take_btn)
 
     if len(free_juzes) > 1:
@@ -159,26 +157,17 @@ def take(user):
 
 def finish(user, reader, juz_id):
     finished_juz = Juz.objects.get(pk=juz_id)
-    finished_juz.status = 3
-    finished_juz.save()
-
+    finished_juz.set_status(3)
     msg = 'Спасибо!'
 
-    hatim = finished_juz.hatim
-    finished_juzes = Juz.objects.filter(hatim=hatim, status=3)
+    fin = finished_juz.hatim.check_finished()
 
-    if len(finished_juzes) == 30:
-        hatim.finished = True
-        hatim.save()
+    if fin:
         counter = HCount.objects.get()
-        counter.value += 1
-        counter.save()
+        counter.increment()
         msg += '\nВы дочитали последнюю главу книги. Пожалуйста, прочитайте дополнительный контент.'
 
-    reader.taken_juz = None
-    reader.take_date = None
-    reader.save()
-
+    reader.take_juz(None)
 
     bot.send_message(user, msg, reply_markup=take_chapter_keyboard)
 
@@ -186,13 +175,9 @@ def finish(user, reader, juz_id):
 
 def reject(user, reader, juz_id):
     rej_juz = Juz.objects.get(pk=juz_id)
-    rej_juz.status = 1
-    rej_juz.save()
+    rej_juz.set_status(1)
 
-    reader.taken_juz = None
-    reader.take_date = None
-    reader.save()
-
+    reader.take_juz(None)
 
     bot.send_message(user, 'Жаль =(', reply_markup=take_chapter_keyboard)
 
