@@ -12,8 +12,11 @@ import time
 
 
 bot = telebot.TeleBot(token)
-inline_keyboard = InlineKeyboardMarkup()
-reply_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+take_chapter_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+take_chapter_keyboard.add(KeyboardButton('Взять главу'))
+
+finish_reject_kb = ReplyKeyboardMarkup(resize_keyboard=True)
+finish_reject_kb.add(KeyboardButton('Я прочитал главу'), KeyboardButton('Отказаться от главы'))
 
 @csrf_exempt
 def index(request):
@@ -32,7 +35,7 @@ def index(request):
 
 def set_webhook(request):
     URL1 = 'https://api.telegram.org/bot{}/setWebhook?'.format(token)
-    URL2 = 'url=https://features.li79.ru/sharebot/{}'.format(token)
+    URL2 = 'url=https://77167e16.ngrok.io/sharebot/{}'.format(token)
     r = requests.post('https://api.telegram.org/bot{}/deleteWebhook'.format(token))
     r = r.json()
     if r['ok']:
@@ -48,7 +51,7 @@ def take_juz(callback_query: CallbackQuery):
 
     user = callback_query.from_user.id
     reader = Reader.objects.get(tg_id=user)
-
+    reply_keyboard = ReplyKeyboardMarkup()
     if not reader.taken_juz:
         data = callback_query.data.split('/')
         juz_num, hatim_id = data[1], data[2]
@@ -65,14 +68,9 @@ def take_juz(callback_query: CallbackQuery):
             reader.take_date = datetime.datetime.now()
             reader.save()
 
-            button1 = KeyboardButton('Я прочитал {} главу'.format(juz_num))
-            button2 = KeyboardButton('Отказаться от главы')
-            reply_keyboard.add(button1, button2)
-
-            bot.send_message(user, 'Вы взяли {} главу'.format(juz_num), reply_markup=reply_keyboard)
+            bot.send_message(user, 'Вы взяли {} главу'.format(juz_num), reply_markup=finish_reject_kb)
         else:
             bot.send_message(user, 'Извините, эту главу уже взяли. Пожалуйста, выберите другую.')
-
     else:
         bot.send_message(user, 'Вы уже взяли главу {}'.format(reader.taken_juz.number))
 
@@ -84,13 +82,9 @@ def start(message):
 
     reader, created = Reader.objects.get_or_create(tg_id=user)
 
+    reply_keyboard = take_chapter_keyboard
     if reader.taken_juz:
-        button1 = KeyboardButton('Я прочитал {} главу'.format(reader.taken_juz.number))
-        button2 = KeyboardButton('Отказаться от главы')
-        reply_keyboard.add(button1, button2)
-    else:
-        button = KeyboardButton('Взять главу')
-        reply_keyboard.add(button)
+        reply_keyboard = finish_reject_kb
 
     bot.send_message(user, 'Hello!', reply_markup=reply_keyboard)
 
@@ -115,6 +109,7 @@ def take(user):
 
     free_juzes = None #contains numbers
     working_htm = None #hatim id
+    inline_keyboard = InlineKeyboardMarkup()
 
     for hatim in not_finished_hatims:
         this_juzes = Juz.objects.filter(hatim=hatim)
@@ -150,13 +145,13 @@ def take(user):
 
     juz1 = free_juzes[0]
     take_btn = InlineKeyboardButton('Взять {} главу'.format(juz1), callback_data='take/{}/{}'.format(juz1, working_htm))
+
     inline_keyboard.add(take_btn)
 
     if len(free_juzes) > 1:
         juz2 = choice(free_juzes[1:])
         take_btn2 = InlineKeyboardButton('Взять {} главу'.format(juz2), callback_data='take/{}/{}'.format(juz2, working_htm))
         inline_keyboard.add(take_btn2)
-
 
     bot.send_message(user, 'Выберите главу', reply_markup=inline_keyboard)
 
@@ -184,10 +179,8 @@ def finish(user, reader, juz_id):
     reader.take_date = None
     reader.save()
 
-    button = KeyboardButton('Взять главу')
-    reply_keyboard.add(button)
 
-    bot.send_message(user, msg, reply_markup=reply_keyboard)
+    bot.send_message(user, msg, reply_markup=take_chapter_keyboard)
 
 
 
@@ -200,10 +193,8 @@ def reject(user, reader, juz_id):
     reader.take_date = None
     reader.save()
 
-    button = KeyboardButton('Взять главу')
-    reply_keyboard.add(button)
 
-    bot.send_message(user, 'Жаль =(', reply_markup=reply_keyboard)
+    bot.send_message(user, 'Жаль =(', reply_markup=take_chapter_keyboard)
 
 @bot.message_handler(content_types=['text'])
 def text_handler(message):
@@ -214,7 +205,7 @@ def text_handler(message):
 
     if text == 'Взять главу':
         take(user)
-    elif taken_juz and text == 'Я прочитал {} главу'.format(taken_juz.number):
+    elif taken_juz and text == 'Я прочитал главу':
         finish(user, reader, taken_juz.id)
     elif taken_juz and text == 'Отказаться от главы':
         reject(user, reader, taken_juz.id)
