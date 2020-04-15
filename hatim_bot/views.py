@@ -7,9 +7,8 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, \
     ReplyKeyboardMarkup, KeyboardButton, CallbackQuery
 from random import choice
 import requests
-import datetime
 import time
-
+import re
 
 bot = telebot.TeleBot(token)
 take_chapter_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -74,6 +73,7 @@ def take_juz(callback_query: CallbackQuery):
 
     bot.answer_callback_query(callback_query.id)
 
+
 @bot.message_handler(commands=['start'])
 def start(message):
     user = message.chat.id
@@ -102,6 +102,7 @@ def help(message):
 
     bot.send_message(user, help_text)
 
+
 @bot.message_handler(commands=['mystats'])
 def show_stats(message):
 
@@ -109,6 +110,19 @@ def show_stats(message):
     reader = Reader.objects.get(tg_id=user)
 
     bot.send_message(user, 'Прочитано глав: {}'.format(reader.read_counter))
+
+def set_read(reader, string):
+    l = re.findall(r'\d+', string)
+    n = int(l[0]) if l else None
+    if n is not None:
+        if n in range(10):
+            reader.read_counter = n
+            reader.save()
+            bot.send_message(reader.tg_id, 'Ура, теперь мы знаем, сколько глав вы прочитали=)')
+        else:
+            bot.send_message(reader.tg_id, 'Вы действительно прочитали столько за три недели? Что-то не верится...')
+    else:
+        bot.send_message(reader.tg_id, 'Что-то я не могу найти здесь число...')
 
 def take(user):
 
@@ -203,6 +217,8 @@ def text_handler(message):
         finish(user, reader, taken_juz.id)
     elif taken_juz and text == 'Отказаться от главы':
         reject(user, reader, taken_juz.id)
+    elif text.strip().lower().startswith('я уже прочитал'):
+        set_read(reader, text)
     else:
         bot.send_message(message.chat.id, message.text)
 
