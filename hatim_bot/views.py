@@ -86,6 +86,7 @@ def start(message):
 
     bot.send_message(user, 'Hello!', reply_markup=reply_keyboard)
 
+
 @bot.message_handler(commands=['help'])
 def help(message):
     user = message.chat.id
@@ -100,6 +101,14 @@ def help(message):
                 '"Взять главу"'
 
     bot.send_message(user, help_text)
+
+@bot.message_handler(commands=['mystats'])
+def show_stats(message):
+
+    user = message.chat.id
+    reader = Reader.objects.get(tg_id=user)
+
+    bot.send_message(user, 'Прочитано глав: {}'.format(reader.read_counter))
 
 def take(user):
 
@@ -154,7 +163,6 @@ def take(user):
     bot.send_message(user, 'Выберите главу', reply_markup=inline_keyboard)
 
 
-
 def finish(user, reader, juz_id):
     finished_juz = Juz.objects.get(pk=juz_id)
     finished_juz.set_status(3)
@@ -167,10 +175,10 @@ def finish(user, reader, juz_id):
         counter.increment()
         msg += '\nВы дочитали последнюю главу книги. Пожалуйста, прочитайте дополнительный контент.'
 
+    reader.increment_counter()
     reader.take_juz(None)
 
     bot.send_message(user, msg, reply_markup=take_chapter_keyboard)
-
 
 
 def reject(user, reader, juz_id):
@@ -180,6 +188,7 @@ def reject(user, reader, juz_id):
     reader.take_juz(None)
 
     bot.send_message(user, 'Жаль =(', reply_markup=take_chapter_keyboard)
+
 
 @bot.message_handler(content_types=['text'])
 def text_handler(message):

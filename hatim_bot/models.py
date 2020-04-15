@@ -44,6 +44,11 @@ class Reader(models.Model):
     tg_id = models.IntegerField(verbose_name='Telegram ID', null=True, blank=True)
     taken_juz = models.OneToOneField(Juz, verbose_name='Взял главу', on_delete=models.SET_NULL, blank=True, null=True)
     take_date = models.DateTimeField(verbose_name='Дата взятия главы', null=True, blank=True)
+    read_counter = models.PositiveSmallIntegerField(verbose_name='Прочитано глав', default=0)
+
+    def increment_counter(self):
+        self.read_counter += 1
+        self.save()
 
     def take_juz(self, juz):
         self.taken_juz = juz
