@@ -5,10 +5,9 @@ from .models import *
 import telebot
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, \
     ReplyKeyboardMarkup, KeyboardButton, CallbackQuery
-from random import choice
 import requests
 import time
-import re
+
 
 bot = telebot.TeleBot(token)
 take_chapter_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -16,6 +15,7 @@ take_chapter_keyboard.add(KeyboardButton('Взять главу'))
 
 finish_reject_kb = ReplyKeyboardMarkup(resize_keyboard=True)
 finish_reject_kb.add(KeyboardButton('Я прочитал главу'), KeyboardButton('Отказаться от главы'))
+
 
 @csrf_exempt
 def index(request):
@@ -34,7 +34,7 @@ def index(request):
 
 def set_webhook(request):
     URL1 = 'https://api.telegram.org/bot{}/setWebhook?'.format(token)
-    URL2 = 'url=https://77167e16.ngrok.io/sharebot/{}'.format(token)
+    URL2 = 'url=https://features.li79.ru/sharebot/{}'.format(token)
     r = requests.post('https://api.telegram.org/bot{}/deleteWebhook'.format(token))
     r = r.json()
     if r['ok']:
@@ -73,7 +73,6 @@ def take_juz(callback_query: CallbackQuery):
 
     bot.answer_callback_query(callback_query.id)
 
-
 @bot.message_handler(commands=['start'])
 def start(message):
     user = message.chat.id
@@ -111,68 +110,20 @@ def show_stats(message):
 
     bot.send_message(user, 'Прочитано глав: {}'.format(reader.read_counter))
 
-def set_read(reader, string):
-    l = re.findall(r'\d+', string)
-    n = int(l[0]) if l else None
-    if n is not None:
-        if n in range(10):
-            reader.read_counter = n
-            reader.save()
-            bot.send_message(reader.tg_id, 'Ура, теперь мы знаем, сколько глав вы прочитали=)')
-        else:
-            bot.send_message(reader.tg_id, 'Вы действительно прочитали столько за три недели? Что-то не верится...')
-    else:
-        bot.send_message(reader.tg_id, 'Что-то я не могу найти здесь число...')
 
 def take(user):
 
     not_finished_hatims = Hatim.objects.filter(finished=False)
 
-    free_juzes = None #contains numbers
-    working_htm = None #hatim id
-    inline_keyboard = InlineKeyboardMarkup()
+    inline_keyboard = InlineKeyboardMarkup(row_width=5)
 
     for hatim in not_finished_hatims:
         this_juzes = Juz.objects.filter(hatim=hatim)
-        j_count = len(this_juzes)
-        free_j = [juz.number for juz in this_juzes if juz.status == 1] #htm may be not finished but with no free juzes
+        can_take = sorted(list(set(range(1, 31)).difference(set((juz.number for juz in this_juzes if juz.status in (2, 3))))))
 
-        if free_j and j_count == 30:
-            free_juzes = free_j
-            working_htm = hatim.id
-
-        elif free_j and j_count < 30:
-            free_juzes = [free_j[0]]
-
-            all_possible_nums = range(1, 31)
-            already_exist = [juz.number for juz in this_juzes]
-            free_numbers = list(set(all_possible_nums).difference(set(already_exist)))
-
-            free_juzes.append(choice(free_numbers))
-            working_htm = hatim.id
-
-        elif not free_j and j_count < 30:
-            all_possible_nums = range(1, 31)
-            already_exist = [juz.number for juz in this_juzes]
-            free_numbers = list(set(all_possible_nums).difference(set(already_exist)))
-
-            free_juzes = [choice(free_numbers), choice(free_numbers)]
-
-            working_htm = hatim.id
-
-    if not free_juzes:
-        new_htm = Hatim.objects.create()
-        working_htm = new_htm.id
-        free_juzes = [1, choice(range(2, 31))]
-
-    juz1 = free_juzes[0]
-    take_btn = InlineKeyboardButton('Взять {} главу'.format(juz1), callback_data='take/{}/{}'.format(juz1, working_htm))
-    inline_keyboard.add(take_btn)
-
-    if len(free_juzes) > 1:
-        juz2 = choice(free_juzes[1:])
-        take_btn2 = InlineKeyboardButton('Взять {} главу'.format(juz2), callback_data='take/{}/{}'.format(juz2, working_htm))
-        inline_keyboard.add(take_btn2)
+        if can_take:
+            inline_keyboard.add(*map(lambda juz_n: InlineKeyboardButton('{}'.format(juz_n), callback_data='take/{}/{}'.format(juz_n, hatim.id)), can_take))
+            break
 
     bot.send_message(user, 'Выберите главу', reply_markup=inline_keyboard)
 
@@ -213,12 +164,10 @@ def text_handler(message):
 
     if text == 'Взять главу':
         take(user)
-    elif taken_juz and text == 'Я прочитал главу':
+    elif taken_juz and text.startswith('Я прочитал'):
         finish(user, reader, taken_juz.id)
     elif taken_juz and text == 'Отказаться от главы':
         reject(user, reader, taken_juz.id)
-    elif text.strip().lower().startswith('я уже прочитал'):
-        set_read(reader, text)
     else:
         bot.send_message(message.chat.id, message.text)
 
