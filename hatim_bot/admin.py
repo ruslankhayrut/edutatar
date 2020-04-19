@@ -39,7 +39,9 @@ class CounterAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'value')
 
 class ReaderAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'taken_juz', 'take_date', 'read_counter')
+    list_display = ('__str__', 'taken_juz', 'take_date', 'exp_date', 'read_counter')
+
+    readonly_fields = ('exp_date', )
 
 
 admin.site.register(Hatim, HatimAdmin)

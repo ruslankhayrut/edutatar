@@ -16,6 +16,10 @@ class Hatim(models.Model):
         if fin:
             self.finished = True
             self.save()
+
+            if not Hatim.objects.filter(finished=False):
+                Hatim.objects.create()
+
             return True
         return False
 
@@ -44,6 +48,7 @@ class Reader(models.Model):
     tg_id = models.IntegerField(verbose_name='Telegram ID', null=True, blank=True)
     taken_juz = models.OneToOneField(Juz, verbose_name='Взял главу', on_delete=models.SET_NULL, blank=True, null=True)
     take_date = models.DateTimeField(verbose_name='Дата взятия главы', null=True, blank=True)
+
     read_counter = models.PositiveSmallIntegerField(verbose_name='Прочитано глав', default=0)
 
     def increment_counter(self):
@@ -54,6 +59,10 @@ class Reader(models.Model):
         self.taken_juz = juz
         self.take_date = datetime.datetime.now() if juz else None
         self.save()
+
+    @property
+    def exp_date(self):
+        return self.take_date + datetime.timedelta(days=7) if self.take_date else None
 
     def __str__(self):
         return str(self.tg_id)
