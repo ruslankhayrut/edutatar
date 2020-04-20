@@ -1,6 +1,6 @@
 from django.shortcuts import render, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from .config import token, owner_id
+from .config import token, owner_id, hook_url
 from .models import *
 import telebot
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, \
@@ -34,7 +34,7 @@ def index(request):
 
 def set_webhook(request):
     URL1 = 'https://api.telegram.org/bot{}/setWebhook?'.format(token)
-    URL2 = 'url=https://features.li79.ru/sharebot/{}'.format(token)
+    URL2 = 'url={}/sharebot/{}'.format(hook_url, token)
     r = requests.post('https://api.telegram.org/bot{}/deleteWebhook'.format(token))
     r = r.json()
     if r['ok']:
@@ -128,7 +128,7 @@ def take(user):
     bot.send_message(user, 'Выберите главу', reply_markup=inline_keyboard)
 
 
-def finish(user, reader, juz_id):
+def finish(reader, juz_id):
     finished_juz = Juz.objects.get(pk=juz_id)
     finished_juz.set_status(3)
     msg = 'Спасибо!'
@@ -143,16 +143,16 @@ def finish(user, reader, juz_id):
     reader.increment_counter()
     reader.take_juz(None)
 
-    bot.send_message(user, msg, reply_markup=take_chapter_keyboard)
+    bot.send_message(reader.tg_id, msg, reply_markup=take_chapter_keyboard)
 
 
-def reject(user, reader, juz_id):
+def reject(reader, juz_id):
     rej_juz = Juz.objects.get(pk=juz_id)
     rej_juz.set_status(1)
 
     reader.take_juz(None)
 
-    bot.send_message(user, 'Жаль =(', reply_markup=take_chapter_keyboard)
+    bot.send_message(reader.tg_id, 'Жаль =(', reply_markup=take_chapter_keyboard)
 
 
 @bot.message_handler(content_types=['text'])
@@ -165,9 +165,9 @@ def text_handler(message):
     if text == 'Взять главу':
         take(user)
     elif taken_juz and text.startswith('Я прочитал'):
-        finish(user, reader, taken_juz.id)
+        finish(reader, taken_juz.id)
     elif taken_juz and text == 'Отказаться от главы':
-        reject(user, reader, taken_juz.id)
+        reject(reader, taken_juz.id)
     else:
         bot.send_message(message.chat.id, message.text)
 
