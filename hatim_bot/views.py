@@ -2,6 +2,7 @@ from django.shortcuts import render, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from .config import token, owner_id, hook_url
 from .models import *
+from hatim_bot.helpers import create_standings_table
 import telebot
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, \
     ReplyKeyboardMarkup, KeyboardButton, CallbackQuery
@@ -107,8 +108,10 @@ def show_stats(message):
 
     user = message.chat.id
     reader = Reader.objects.get(tg_id=user)
+    all_readers = Reader.objects.order_by('-read_counter')
 
-    bot.send_message(user, 'Прочитано глав: {}'.format(reader.read_counter))
+    msg = create_standings_table(reader, all_readers)
+    bot.send_message(user, msg, parse_mode='Markdown')
 
 
 def take(user):
