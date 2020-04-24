@@ -46,8 +46,12 @@ class Juz(models.Model):
 
 class Reader(models.Model):
     tg_id = models.IntegerField(verbose_name='Telegram ID', null=True, blank=True)
+    first_name = models.CharField(verbose_name='Имя', null=True, blank=True, max_length=50)
+    last_name = models.CharField(verbose_name='Фамилия', null=True, blank=True, max_length=50)
+    username = models.CharField(verbose_name='Username TG', null=True, blank=True, max_length=50)
     taken_juz = models.OneToOneField(Juz, verbose_name='Взял главу', on_delete=models.SET_NULL, blank=True, null=True)
     take_date = models.DateTimeField(verbose_name='Дата взятия главы', null=True, blank=True)
+    reading_days = models.PositiveSmallIntegerField(verbose_name='Сколько дней читал', default=0)
 
     read_counter = models.PositiveSmallIntegerField(verbose_name='Прочитано глав', default=0)
 
@@ -63,6 +67,16 @@ class Reader(models.Model):
     @property
     def exp_date(self):
         return self.take_date + datetime.timedelta(days=7) if self.take_date else None
+
+    @property
+    def reading_speed(self):
+        if self.reading_days:
+            return round(self.read_counter * 30 / self.reading_days, 2)
+        return 0
+
+    @property
+    def fullname(self):
+        return '{} {}'.format(self.first_name, self.last_name)
 
     def __str__(self):
         return str(self.tg_id)

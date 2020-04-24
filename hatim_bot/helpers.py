@@ -1,3 +1,5 @@
+from hatim_bot.models import Reader
+
 def standings_generator(readers, count, filler):
 
     my_readers = iter(readers)
@@ -40,3 +42,26 @@ def create_standings_table(reader, all_readers, count=10, filler='='):
         table += '\n      ...\n*      {}               {}* <<'.format(list(all_readers).index(reader) + 1, reader.read_counter)
 
     return table
+
+def grab_name(func):
+
+    def wrapper(message, *args, **kwargs):
+
+        first_name = message.from_user.first_name
+        last_name = message.from_user.last_name
+        username = message.from_user.username
+
+        if any((first_name, last_name, username)):
+            reader = Reader.objects.get(tg_id=message.from_user.id)
+
+            if first_name:
+                reader.first_name = first_name
+            if last_name:
+                reader.last_name = last_name
+            if username:
+                reader.username = username
+
+            reader.save()
+        return func(message, *args, **kwargs)
+
+    return wrapper

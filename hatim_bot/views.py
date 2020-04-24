@@ -2,7 +2,7 @@ from django.shortcuts import render, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from .config import token, owner_id, hook_url
 from .models import *
-from hatim_bot.helpers import create_standings_table
+from hatim_bot.helpers import create_standings_table, grab_name
 import telebot
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, \
     ReplyKeyboardMarkup, KeyboardButton, CallbackQuery
@@ -159,7 +159,9 @@ def reject(reader, juz_id):
 
 
 @bot.message_handler(content_types=['text'])
+@grab_name
 def text_handler(message):
+
     text = message.text
     user = message.chat.id
     reader = Reader.objects.get(tg_id=user)
