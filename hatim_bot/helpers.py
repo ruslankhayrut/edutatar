@@ -51,8 +51,8 @@ def grab_name(func):
         last_name = message.from_user.last_name
         username = message.from_user.username
 
-        if any((first_name, last_name, username)):
-            reader = Reader.objects.get(tg_id=message.from_user.id)
+        reader = Reader.objects.get(tg_id=message.from_user.id)
+        if not any((reader.first_name, reader.last_name, reader.username)) and any((first_name, last_name, username)):
 
             if first_name:
                 reader.first_name = first_name
@@ -60,7 +60,6 @@ def grab_name(func):
                 reader.last_name = last_name
             if username:
                 reader.username = username
-
             reader.save()
         return func(message, *args, **kwargs)
 
