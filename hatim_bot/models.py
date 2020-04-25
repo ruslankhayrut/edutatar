@@ -17,9 +17,6 @@ class Hatim(models.Model):
             self.finished = True
             self.save()
 
-            if not Hatim.objects.filter(finished=False):
-                Hatim.objects.create()
-
             return True
         return False
 
@@ -39,7 +36,7 @@ class Juz(models.Model):
         self.save()
 
     def __str__(self):
-        return 'Juz {}'.format(self.number)
+        return '{} | Juz {}'.format(self.hatim, self.number)
 
     class Meta:
         ordering = ['hatim', 'number']
