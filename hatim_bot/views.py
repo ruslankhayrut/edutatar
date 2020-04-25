@@ -120,21 +120,20 @@ def take(user):
 
     inline_keyboard = InlineKeyboardMarkup(row_width=5)
 
-    #TODO: optimise the code below
-
     can_take = []
     for hatim in not_finished_hatims:
         this_juzes = Juz.objects.filter(hatim=hatim)
-        can_take = sorted(list(set(range(1, 31)).difference(set((juz.number for juz in this_juzes if juz.status in (2, 3))))))
+        untakeable = set((juz.number for juz in this_juzes if juz.status in (2, 3)))
 
-        if can_take:
-            inline_keyboard.add(*map(lambda juz_n: InlineKeyboardButton('{}'.format(juz_n), callback_data='take/{}/{}'.format(juz_n, hatim.id)), can_take))
+        if len(untakeable) < 30:
+            can_take = sorted(list(set(range(1, 31)).difference(untakeable)))
             break
 
     if not can_take:
         Hatim.objects.create()
-        inline_keyboard.add(*map(lambda juz_n: InlineKeyboardButton('{}'.format(juz_n), callback_data='take/{}/{}'.format(juz_n, hatim.id)), range(1, 31)))
+        can_take = range(1, 31)
 
+    inline_keyboard.add(*map(lambda juz_n: InlineKeyboardButton('{}'.format(juz_n), callback_data='take/{}/{}'.format(juz_n, hatim.id)), can_take))
     bot.send_message(user, 'Выберите главу', reply_markup=inline_keyboard)
 
 
