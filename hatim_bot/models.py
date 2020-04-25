@@ -1,5 +1,7 @@
 from django.db import models
 import datetime
+import pytz
+
 
 class Hatim(models.Model):
 
@@ -48,13 +50,25 @@ class Reader(models.Model):
     username = models.CharField(verbose_name='Username TG', null=True, blank=True, max_length=50)
     taken_juz = models.OneToOneField(Juz, verbose_name='Взял главу', on_delete=models.SET_NULL, blank=True, null=True)
     take_date = models.DateTimeField(verbose_name='Дата взятия главы', null=True, blank=True)
-    reading_days = models.PositiveSmallIntegerField(verbose_name='Сколько дней читал', default=0)
+    reading_days = models.FloatField(verbose_name='Сколько дней читал', default=0)
 
     read_counter = models.PositiveSmallIntegerField(verbose_name='Прочитано глав', default=0)
 
-    def increment_counter(self):
+    def finish_juz(self):
         self.read_counter += 1
-        self.save()
+
+        self.reading_days += self.calculate_reading_days()
+        self.take_juz(None)
+
+    def calculate_reading_days(self):
+        rd = datetime.datetime.now(tz=pytz.utc) - self.take_date
+
+        hours = round(rd.seconds / 3600)
+
+        act_days = rd.days + round(hours / 24)
+        days = act_days if act_days else 0.5
+
+        return days
 
     def take_juz(self, juz):
         self.taken_juz = juz
@@ -63,7 +77,7 @@ class Reader(models.Model):
 
     @property
     def exp_date(self):
-        return self.take_date + datetime.timedelta(days=7) if self.take_date else None
+        return self.take_date + datetime.timedelta(days=7, hours=3) if self.take_date else None
 
     @property
     def reading_speed(self):

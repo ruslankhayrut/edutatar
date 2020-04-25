@@ -149,9 +149,7 @@ def finish(reader, juz_id):
         counter.increment()
         msg += '\nВы дочитали последнюю главу книги. Пожалуйста, прочитайте дополнительный контент.'
 
-    reader.increment_counter()
-    reader.take_juz(None)
-
+    reader.finish_juz()
     bot.send_message(reader.tg_id, msg, reply_markup=take_chapter_keyboard)
 
 
