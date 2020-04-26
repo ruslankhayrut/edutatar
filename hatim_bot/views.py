@@ -93,12 +93,13 @@ def help(message):
 
     help_text = 'Доступные команды:\n' \
                 '/start\n' \
-                '/help\n\n' \
+                '/help\n' \
+                '/mystats\n\n' \
                 'Если вы взяли главу, а клавиатура вдруг не обновилась, отправьте боту сообщение ' \
-                '"Я прочитал ... главу" (если вы прочитали эту главу) или ' \
+                '"Я прочитал главу" (если вы прочитали эту главу) или ' \
                 '"Отказаться от главы" (если вы хотите попробовать взять другую главу)\n\n' \
                 'Если вы еще не взяли главу, а соответствующая кнопка почему-то не появилась, отправьте боту сообщение ' \
-                '"Взять главу"'
+                '"Взять главу" \n\nЕсли что-то совсем сломалось и не работает — пишите @ruslankhayrut :)'
 
     bot.send_message(user, help_text)
 
@@ -110,7 +111,8 @@ def show_stats(message):
     reader = Reader.objects.get(tg_id=user)
     all_readers = Reader.objects.order_by('-read_counter')
 
-    msg = create_standings_table(reader, all_readers)
+    msg = 'Книг прочитано: *{}*\n\n'.format(HCount.objects.get().value)
+    msg += create_standings_table(reader, all_readers)
     bot.send_message(user, msg, parse_mode='Markdown')
 
 

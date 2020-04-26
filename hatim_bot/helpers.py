@@ -1,4 +1,6 @@
 from hatim_bot.models import Reader
+from functools import wraps
+
 
 def standings_generator(readers, count, filler):
 
@@ -14,9 +16,9 @@ def standings_generator(readers, count, filler):
             if reader.read_counter != prev_read_c:
                 place += 1
                 prev_read_c = reader.read_counter
-                yield (place, reader)
+                yield place, reader
             else:
-                yield (filler, reader)
+                yield filler, reader
             c += 1
         except StopIteration:
             return
@@ -45,6 +47,7 @@ def create_standings_table(reader, all_readers, count=10, filler='='):
 
 def grab_name(func):
 
+    @wraps(func)
     def wrapper(message, *args, **kwargs):
 
         first_name = message.from_user.first_name
