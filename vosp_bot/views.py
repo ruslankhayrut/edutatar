@@ -6,24 +6,23 @@ import telebot
 import requests
 import locale
 import datetime
-import time
+
 locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
 
-bot = telebot.TeleBot(token)
+bot = telebot.TeleBot(token, threaded=False)
 
 @csrf_exempt
 def index(request):
-    if request.method == 'POST':
-        if request.META.get('CONTENT_TYPE') == 'application/json':
-            json_string = request.body.decode('utf-8')
-            update = telebot.types.Update.de_json(json_string)
-            bot.process_new_updates([update])
-            time.sleep(0.2)
+    if request.method != 'POST':
+        return HttpResponse(status=403)
+    if request.META.get('CONTENT_TYPE') != 'application/json':
+        return HttpResponse(status=403)
 
-            return HttpResponse('')
-        return HttpResponse(status=200)
-    else:
-        return render(request, 'vosp_bot/index.html')
+    json_string = request.body.decode('utf-8')
+    update = telebot.types.Update.de_json(json_string)
+    bot.process_new_updates([update])
+
+    return render(request, 'vosp_bot/index.html')
 
 
 def set_webhook(request):

@@ -7,10 +7,9 @@ import telebot
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, \
     ReplyKeyboardMarkup, KeyboardButton, CallbackQuery
 import requests
-import time
 
 
-bot = telebot.TeleBot(token)
+bot = telebot.TeleBot(token, threaded=False)
 take_chapter_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
 take_chapter_keyboard.add(KeyboardButton('Взять главу'))
 
@@ -20,17 +19,16 @@ finish_reject_kb.add(KeyboardButton('Я прочитал главу'), KeyboardB
 
 @csrf_exempt
 def index(request):
-    if request.method == 'POST':
-        if request.META.get('CONTENT_TYPE') == 'application/json':
-            json_string = request.body.decode('utf-8')
-            update = telebot.types.Update.de_json(json_string)
-            bot.process_new_updates([update])
-            time.sleep(0.2)
+    if request.method != 'POST':
+        return HttpResponse(status=403)
+    if request.META.get('CONTENT_TYPE') != 'application/json':
+        return HttpResponse(status=403)
 
-            return HttpResponse('')
-        return HttpResponse(status=200)
-    else:
-        return render(request, 'journal_parser/index.html')
+    json_string = request.body.decode('utf-8')
+    update = telebot.types.Update.de_json(json_string)
+    bot.process_new_updates([update])
+
+    return render(request, 'journal_parser/index.html')
 
 
 def set_webhook(request):
@@ -149,7 +147,7 @@ def finish(reader, juz_id):
     if fin:
         counter = HCount.objects.get()
         counter.increment()
-        msg += '\nВы дочитали последнюю главу книги. Пожалуйста, прочитайте дополнительный контент.'
+        msg += '\nВы дочитали последнюю главу книги. Пожалуйста, прочитайте дополнительные страницы.'
 
     reader.finish_juz()
     bot.send_message(reader.tg_id, msg, reply_markup=take_chapter_keyboard)
