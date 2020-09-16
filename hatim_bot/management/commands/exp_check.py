@@ -43,13 +43,13 @@ class Command(BaseCommand):
 
                 warned.append(user_id)
 
-        revoked_str = ', '.join(str(elem) for elem in revoked) if revoked else 'Нет'
-        warned_str = ', '.join(str(elem) for elem in warned) if warned else 'Нет'
-
-        msg = 'Главы отозваны у: {}\n' \
-              'Предупреждения отправлены: {}'.format(revoked_str, warned_str)
-
-        bot.send_message(owner_id, msg)
+        # revoked_str = ', '.join(str(elem) for elem in revoked) if revoked else 'Нет'
+        # warned_str = ', '.join(str(elem) for elem in warned) if warned else 'Нет'
+        #
+        # msg = 'Главы отозваны у: {}\n' \
+        #       'Предупреждения отправлены: {}'.format(revoked_str, warned_str)
+        #
+        # bot.send_message(owner_id, msg)
 
 
 
