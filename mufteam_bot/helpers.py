@@ -6,7 +6,7 @@ SUBJECTS = ["Русский язык", "Математика", "Английск
               "Информатика", "Физкультура", "История", "Обществознание",
               "Право", "Алгебра", "Геометрия"]
 
-HOMEWORKS = dict(zip(SUBJECTS, (f'ДЗ по {subj}' for subj in SUBJECTS)))
+HOMEWORKS = dict(zip(SUBJECTS, ('ДЗ по {}'.format(subj) for subj in SUBJECTS)))
 
 
 def generate_fake_data(student):
