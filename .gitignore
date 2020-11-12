@@ -4,7 +4,4 @@ db.sqlite3
 edutatar/__pycache__/
 journal_parser/__pycache__/
 journal_parser/JournalParser/__pycache__/
-vosp_bot/config.py
-vkrepost/config.py
-hatim_bot/config.py
 **/__pycache__/
