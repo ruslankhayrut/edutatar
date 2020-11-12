@@ -25,7 +25,7 @@ SECRET_KEY = 'te6kelptq&ra+!4yyn^x3iqx%gcukh%9n%6f=i(cu5d(1n6&v0'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = DEBUG
 
-ALLOWED_HOSTS = ['features.li79.ru', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'vosp_bot.apps.VospBotConfig',
     'schedule.apps.ScheduleConfig',
     'hatim_bot.apps.HatimBotConfig',
+    'mufteam_bot.apps.MufteamBotConfig'
 ]
 
 

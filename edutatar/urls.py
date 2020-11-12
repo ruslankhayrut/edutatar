@@ -28,5 +28,6 @@ urlpatterns = [
     path('', index, name='index'),
     path('act', act, name='act'),
     path('sharebot/', include('hatim_bot.urls')),
+    path('mufteambot/', include('mufteam_bot.urls'))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

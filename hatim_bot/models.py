@@ -43,6 +43,7 @@ class Juz(models.Model):
     class Meta:
         ordering = ['hatim', 'number']
 
+
 class Reader(models.Model):
     tg_id = models.IntegerField(verbose_name='Telegram ID', null=True, blank=True)
     first_name = models.CharField(verbose_name='Имя', null=True, blank=True, max_length=50)
