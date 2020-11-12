@@ -29,8 +29,7 @@ def get_homework(request, student):
 
     subject_objs = Subject.objects.filter(name__in=subjects, student=student)
     for s in subject_objs:
-        hw = s.homework
-        resp_str += f'{s.name}: {hw}\n\n'
+        resp_str += '{}: {}\n\n'.format(s.name, s.homework)
 
     resp.update({'fulfillmentText': resp_str})
     return resp
@@ -49,7 +48,7 @@ def get_mark(request, student):
     subject_objs = Subject.objects.filter(name__in=subjects, student=student)
 
     for s in subject_objs:
-        resp_str += f'{s.name}: {s.marks_string}\n\n'
+        resp_str += '{}: {}\n\n'.format(s.name, s.marks_string)
 
     resp.update({'fulfillmentText': resp_str})
     return resp
@@ -68,7 +67,7 @@ def get_avg_mark(request, student):
     subject_objs = Subject.objects.filter(name__in=subjects, student=student)
 
     for s in subject_objs:
-        resp_str += f'{s.name}: {s.average_mark}\n\n'
+        resp_str += '{}: {}\n\n'.format(s.name, s.average_mark)
 
     resp.update({'fulfillmentText': resp_str})
     return resp
