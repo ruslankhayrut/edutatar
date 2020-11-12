@@ -75,7 +75,8 @@ def get_avg_mark(request, student):
 
 @csrf_exempt
 def index(request):
-    request = json.loads(request.body)
+    json_str=((request.body).decode('utf-8'))
+    request=json.loads(json_str)
     qres = request.get('queryResult')
     action = qres.get('action')
     handler_func = handlers.get(action)
