@@ -1,18 +1,16 @@
 import re
-from .remove_emoji import strip_emoji
-from .config import LOGIN, PASSWORD
-from .eduauth import edu_auth
+from remove_emoji import strip_emoji
+from config import LOGIN, PASSWORD
+from eduauth import edu_auth
 from bs4 import BeautifulSoup
 
+
 def upload_img(session, photo_url):
-
-
     h = {"Referer": "https://edu.tatar.ru/upload_crop/show/?aspect_ratio=1&index=1&type=2&img_file=",
          }
     img = session.get(photo_url)
 
     file = {"inpUplCrop1": img.content}
-
 
     f = session.post("https://edu.tatar.ru/upload_crop", headers=h, files=file, data={
         'type': 2,
@@ -37,8 +35,8 @@ def process_text(text):
 
     return title, lead
 
-def post_news(data):
 
+def post_news(data):
     text = strip_emoji(data['text'])
 
     date = data['date']
@@ -50,13 +48,10 @@ def post_news(data):
     else:
         lead = process_text(text)[1]
 
-
-
     session = edu_auth(LOGIN, PASSWORD)
 
     session.get('https://edu.tatar.ru')
     r = session.get('https://edu.tatar.ru/admin/page/news_block')
-
 
     html = BeautifulSoup(r.text, 'html.parser')
 
@@ -66,11 +61,11 @@ def post_news(data):
     block_id = re.findall(r'\d+', link)[0]
 
     session.headers.update({"Host": "edu.tatar.ru",
-                          "Origin": "https://edu.tatar.ru",
-                          "User-Agent": "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) \
+                            "Origin": "https://edu.tatar.ru",
+                            "User-Agent": "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) \
                                             AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 \
                                             YaBrowser/18.10.1.382 (beta) Yowser/2.5 Safari/537.36"
-                          })
+                            })
 
     if photo_url:
         upload_img(session, photo_url)
@@ -89,25 +84,57 @@ def post_news(data):
     else:
         crop = None
 
-
     h = {"Referer": "https://edu.tatar.ru/admin/page/news/edit?news_block_id={}".format(block_id),
          "Content-Type": "application/x-www-form-urlencoded"}
 
-
     r = session.post('https://edu.tatar.ru/admin/page/news/edit?news_block_id={}'.format(block_id), headers=h,
-                    data={
-                        'news[title]': title,
-                        'news[ndate]': date,
-                        'news[source]': None,
-                        'news[lead]': lead,
-                        'news[text]': '<p> {} </p>'.format(text),
-                        'news[imgUCAdjData1]': crop,
-                        'news[image_idx]': 1,
-                        'news[gallery_id]': None,
-                        'news[videoteka_id]': None,
-                        'news[trans_school]': 0,
-                        'news[trans_region]': 0,
-                        'news[trans_global]': 0,
-                    }
-                    )
+                     data={
+                         'news[title]': title,
+                         'news[ndate]': date,
+                         'news[source]': None,
+                         'news[lead]': lead,
+                         'news[text]': '<p> {} </p>'.format(text),
+                         'news[imgUCAdjData1]': crop,
+                         'news[image_idx]': 1,
+                         'news[gallery_id]': None,
+                         'news[videoteka_id]': None,
+                         'news[trans_school]': 0,
+                         'news[trans_region]': 0,
+                         'news[trans_global]': 0,
+                     }
+                     )
     return r.status_code
+
+
+def post_page(data):
+    session = edu_auth(LOGIN, PASSWORD)
+
+    session.get('https://edu.tatar.ru')
+    page_id = 800107
+    r = session.get(f'https://edu.tatar.ru/admin/page/simple_page/edit/{page_id}')
+    html = BeautifulSoup(r.text, 'html.parser')
+    print(html)
+    text = html.find_all('iframe')
+    print(len(text))
+
+
+def upload_file(session, file_url, target_folder='food'):
+    # h = {"Referer": "https://edu.tatar.ru/",
+    #      }
+    url = "https://edu.tatar.ru/upload/storage/org1505/files/" + target_folder + '/'
+    img = open(file_url, mode='rb')
+    filename = img.name.split('\\')[-1]
+    data = {}
+    files = {}
+    data[filename] = img
+    files[filename] = filename
+    multiple_files = [('images', (filename, img, 'image/png'))]
+    f = session.post(url=url,
+                     # headers=h,
+                     files=multiple_files)
+
+    return f.text
+
+
+# session = edu_auth(LOGIN, PASSWORD)
+# print(upload_file(session, 'D:\\Downloads\\okrug (2).xlsx'))
