@@ -119,6 +119,22 @@ def post_page(data):
     print(len(text))
 
 
+def get_files(session, from_folder='food'):
+    url = "https://edu.tatar.ru/js/ckfinder/core/connector/php/connector.php"
+    params = {'command': 'GetFiles',
+              'type': 'Files',
+              'currentFolder': f'/{from_folder}/',
+              # 'hash': 'cc921cf4d95e67d0',
+              # 'showThumbs': 1,
+              # 'langCode': 'ru'
+              }
+    res = session.get(url, params=params)
+    from xml.etree import ElementTree
+    tree = ElementTree.fromstring(res.content)
+    print(tree)
+    return res
+
+
 def upload_file(session, file_url, target_folder='food'):
     h = {"Referer": "https://edu.tatar.ru/",
          }
@@ -143,13 +159,12 @@ def upload_file(session, file_url, target_folder='food'):
     return f.text
 
 
-def upload_multiple_files(files_list):
-    session = edu_auth(LOGIN, PASSWORD)
+def upload_multiple_files(session, files_list):
     for filename in files_list:
         print(upload_file(session, filename))
 
 
-def upload_menus():
+def upload_menus(session):
     list_of_filenames = []
     for i in range(1, 31):
         day = str(i // 10) + str(i % 10)
@@ -157,7 +172,8 @@ def upload_menus():
         if os.path.exists(filename):
             list_of_filenames.append(filename)
 
-    upload_multiple_files(list_of_filenames)
+    upload_multiple_files(session, list_of_filenames)
 
 
-# upload_menus()
+# session = edu_auth(LOGIN, PASSWORD)
+# get_files(session)
