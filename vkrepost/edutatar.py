@@ -1,4 +1,5 @@
 import re
+import os.path
 from remove_emoji import strip_emoji
 from config import LOGIN, PASSWORD
 from eduauth import edu_auth
@@ -119,22 +120,44 @@ def post_page(data):
 
 
 def upload_file(session, file_url, target_folder='food'):
-    # h = {"Referer": "https://edu.tatar.ru/",
-    #      }
-    url = "https://edu.tatar.ru/upload/storage/org1505/files/" + target_folder + '/'
+    h = {"Referer": "https://edu.tatar.ru/",
+         }
+    # url = "https://edu.tatar.ru/upload/storage/org1505/files/" + target_folder + '/'
+    # url = "https://edu.tatar.ru/js/ckfinder/core/connector/php/connector.php?command=FileUpload&type=Files&currentFolder=/food/&hash=cc921cf4d95e67d0&langCode=ru"
+    url = f"https://edu.tatar.ru/js/ckfinder/core/connector/php/connector.php"
+    params = {'command': 'FileUpload',
+              'type': 'Files',
+              'currentFolder': f"/{target_folder}/",
+              # 'hash': 'cc921cf4d95e67d0', # эти параметрыо казались не обязательными... вроде
+              # 'langCode': 'ru'
+              }
+    data = {}
     img = open(file_url, mode='rb')
     filename = img.name.split('\\')[-1]
-    data = {}
-    files = {}
     data[filename] = img
-    files[filename] = filename
-    multiple_files = [('images', (filename, img, 'image/png'))]
     f = session.post(url=url,
-                     # headers=h,
-                     files=multiple_files)
-
+                     headers=h,
+                     params=params,
+                     files=data)
+    img.close()
     return f.text
 
 
-# session = edu_auth(LOGIN, PASSWORD)
-# print(upload_file(session, 'D:\\Downloads\\okrug (2).xlsx'))
+def upload_multiple_files(files_list):
+    session = edu_auth(LOGIN, PASSWORD)
+    for filename in files_list:
+        print(upload_file(session, filename))
+
+
+def upload_menus():
+    list_of_filenames = []
+    for i in range(1, 31):
+        day = str(i // 10) + str(i % 10)
+        filename = f'D:\\Downloads\\2021-09-{day}-sm.xlsx'
+        if os.path.exists(filename):
+            list_of_filenames.append(filename)
+
+    upload_multiple_files(list_of_filenames)
+
+
+# upload_menus()
