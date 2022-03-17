@@ -3,6 +3,7 @@ import os.path
 from remove_emoji import strip_emoji
 from config import LOGIN, PASSWORD
 from eduauth import edu_auth
+from gmail_api import gmail_attachments
 from bs4 import BeautifulSoup
 
 
@@ -135,7 +136,17 @@ def get_files(session, from_folder='food'):
     return res
 
 
-def upload_file(session, file_url, target_folder='food'):
+def upload_file(session, file_path, target_folder):
+    data = {}
+    img = open(file_path, mode='rb')
+    filename = img.name.split('\\')[-1]
+    data[filename] = img
+    f = upload_files(session, data, target_folder)
+    img.close()
+    return f.text
+
+
+def upload_files(session, files, target_folder='food'):
     h = {"Referer": "https://edu.tatar.ru/",
          }
     # url = "https://edu.tatar.ru/upload/storage/org1505/files/" + target_folder + '/'
@@ -147,21 +158,16 @@ def upload_file(session, file_url, target_folder='food'):
               # 'hash': 'cc921cf4d95e67d0', # эти параметрыо казались не обязательными... вроде
               # 'langCode': 'ru'
               }
-    data = {}
-    img = open(file_url, mode='rb')
-    filename = img.name.split('\\')[-1]
-    data[filename] = img
     f = session.post(url=url,
                      headers=h,
                      params=params,
-                     files=data)
-    img.close()
-    return f.text
+                     files=files)
+    return f
 
 
 def upload_multiple_files(session, files_list):
     for filename in files_list:
-        print(upload_file(session, filename))
+        print(upload_file(session, filename, 'food'))
 
 
 def upload_menus(session):
@@ -175,5 +181,17 @@ def upload_menus(session):
     upload_multiple_files(session, list_of_filenames)
 
 
-# session = edu_auth(LOGIN, PASSWORD)
-# get_files(session)
+def daily_menu():
+    g_session = gmail_attachments.connect()
+    edu_session = edu_auth(LOGIN, PASSWORD)
+
+    data = gmail_attachments.get_attachments(g_session, {'labels': ['Label_7', 'UNREAD']})
+    # files = {}
+    for mail_id, attach in data.items():
+        files = attach.items()
+        # upload_files(edu_session, files)
+        gmail_attachments.label_modify(g_session,'me', mail_id, ['UNREAD'])
+
+
+if __name__ == '__main__':
+    daily_menu()
