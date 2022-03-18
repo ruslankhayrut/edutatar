@@ -109,6 +109,7 @@ def post_news(data):
 
 
 def post_page(data):
+    # TODO Сделать обновление страницы ежедневного меню
     session = edu_auth(LOGIN, PASSWORD)
 
     session.get('https://edu.tatar.ru')
@@ -189,7 +190,7 @@ def daily_menu():
     # files = {}
     for mail_id, attach in data.items():
         files = attach.items()
-        # upload_files(edu_session, files)
+        upload_files(edu_session, files)
         gmail_attachments.label_modify(g_session,'me', mail_id, ['UNREAD'])
 
 
