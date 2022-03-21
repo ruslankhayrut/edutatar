@@ -113,10 +113,15 @@ def post_page(data):
 
     session.get('https://edu.tatar.ru')
     page_id = 800107
-    r = session.get(f'https://edu.tatar.ru/admin/page/simple_page/edit/{page_id}')
+    url = f'https://edu.tatar.ru/admin/page/simple_page/edit/{page_id}'
+    r = session.get(url)
     html = BeautifulSoup(r.text, 'html.parser')
-    print(html)
-    text = html.find_all('iframe')
+    print('<p>Hello!!</p>'+str(html.find_all('textarea', id='simple_page_data')[-1].contents[-1]))
+    text = '<p>Hello!!</p>'+str(html.find_all('textarea', id='simple_page_data')[-1].contents[-1])
+
+    r = session.post(url=url,
+                     data=text
+                     )
     print(len(text))
 
 
@@ -189,9 +194,9 @@ def daily_menu():
     # files = {}
     for mail_id, attach in data.items():
         files = attach.items()
-        # upload_files(edu_session, files)
+        upload_files(edu_session, files)
         gmail_attachments.label_modify(g_session,'me', mail_id, ['UNREAD'])
 
 
 if __name__ == '__main__':
-    daily_menu()
+    post_page([])
