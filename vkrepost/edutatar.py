@@ -110,19 +110,22 @@ def post_news(data):
 
 def post_page(data):
     session = edu_auth(LOGIN, PASSWORD)
-
     session.get('https://edu.tatar.ru')
     page_id = 800107
     url = f'https://edu.tatar.ru/admin/page/simple_page/edit/{page_id}'
+    h = {"Referer": url,
+         "Content-Type": "application/x-www-form-urlencoded"}
     r = session.get(url)
     html = BeautifulSoup(r.text, 'html.parser')
-    print('<p>Hello!!</p>'+str(html.find_all('textarea', id='simple_page_data')[-1].contents[-1]))
-    text = '<p>Hello!!</p>'+str(html.find_all('textarea', id='simple_page_data')[-1].contents[-1])
-
-    r = session.post(url=url,
-                     data=text
+    one_link = f'<p><a href="/upload/storage/org1505/files/food/{data["filename"]}">{data["filename"]}</a></p>'
+    text = one_link + str(html.find_all('textarea', id='simple_page_data')[-1].contents[-1])
+    r = session.post(url=url, headers=h,
+                     data={'simple_page[title]': 'Ежедневные Меню',
+                           'simple_page[description]': '',
+                           'simple_page[data]': text,
+                           'simple_page[organization_id]': 1505}
                      )
-    print(len(text))
+    print(r)
 
 
 def get_files(session, from_folder='food'):
@@ -195,8 +198,8 @@ def daily_menu():
     for mail_id, attach in data.items():
         files = attach.items()
         upload_files(edu_session, files)
-        gmail_attachments.label_modify(g_session,'me', mail_id, ['UNREAD'])
+        gmail_attachments.label_modify(g_session, 'me', mail_id, ['UNREAD'])
 
 
 if __name__ == '__main__':
-    post_page([])
+    post_page({'filename': 'hello.xls'})
