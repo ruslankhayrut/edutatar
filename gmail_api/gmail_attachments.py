@@ -97,7 +97,7 @@ def label_modify(service, user_id, msg_id, labels_to_remove=[], labels_to_add=[]
             "addLabelIds": labels_to_add,
             "removeLabelIds": labels_to_remove
         }
-        result = service.users().messages().modify(userId=user_id, id=msg_id, body=requset_body)
+        result = service.users().messages().modify(userId=user_id, id=msg_id, body=requset_body).execute()
         return result
     except HttpError as error:
         # TODO(developer) - Handle errors from gmail API.
