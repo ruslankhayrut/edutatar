@@ -8,7 +8,8 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+# SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
 
 
 def connect(token='client_secret_409906500884-eehob51bqngeavl0vfekpb3nd34c20n4.apps.googleusercontent.com.json'):
@@ -109,9 +110,8 @@ def get_attachments(service: build, params):
         (label ids for now)
     """
     labels_list = params.get('labels', [])
-    needResults = params.get('maxResults', 10)
     try:
-        results = service.users().messages().list(userId='me', maxResults=needResults, labelIds=labels_list).execute()
+        results = service.users().messages().list(userId='me', maxResults=100, labelIds=labels_list).execute()
         pprint(results.get('messages', []))
         files_by_message = {}
         for message_id in results.get('messages', []):
