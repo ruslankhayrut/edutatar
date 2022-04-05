@@ -118,7 +118,7 @@ def post_page(session, page_id, data):
     file_links = ''
     for file in data:
         file_links = f'<p><a href="/upload/storage/org1505/files/food/{file[0]}">{file[0]}</a></p>\n' + file_links
-    text = file_links + str(html.find_all('textarea', id='simple_page_data')[-1].contents[-1])
+    text = file_links  # + str(html.find_all('textarea', id='simple_page_data')[-1].contents[-1])
     r = session.post(url=url, headers=h,
                      data={'simple_page[title]': 'Ежедневные Меню',
                            'simple_page[description]': '',
@@ -139,9 +139,13 @@ def get_files(session, from_folder='food'):
               }
     res = session.get(url, params=params)
     from xml.etree import ElementTree
-    tree = ElementTree.fromstring(res.content)
-    print(tree)
-    return res
+    files = ElementTree.fromstring(res.content).findall('Files')[0].findall('File')
+    files_list = []
+    for file in files:
+        filename = file.get('name')
+        files_list.append(
+            (filename, '/'.join(['https://edu.tatar.ru/upload/storage/org1505/files', from_folder, filename])))
+    return files_list
 
 
 def upload_file(session, file_path, target_folder):
@@ -198,7 +202,7 @@ def daily_menu():
     for mail_id, attach in data.items():
         files = normalize_filenames(attach).items()
         upload_files(edu_session, files)
-        post_page(edu_session, page_id=800107, data=files)
+        post_page(edu_session, page_id=800107, data=get_files(session))
         gmail_attachments.label_modify(g_session, 'me', mail_id, labels_to_remove=['UNREAD'])
 
 
@@ -209,7 +213,10 @@ def normalize_filenames(files_dict):
         res[new_key] = files_dict[key]
     return res
 
+
 if __name__ == '__main__':
-    # session = edu_auth(LOGIN, PASSWORD)
+    session = edu_auth(LOGIN, PASSWORD)
     # post_page(session, page_id=800107, data={'filename': 'hello.xls'})
     daily_menu()
+    # data = get_files(session)
+    # post_page(session, page_id=800107, data=data)
