@@ -34,6 +34,7 @@ def connect(token='client_secret_409906500884-eehob51bqngeavl0vfekpb3nd34c20n4.a
     try:
         # Call the Gmail API
         service = build('gmail', 'v1', credentials=creds)
+        print('Gmail connected')
         return service
     except HttpError as error:
         # TODO(developer) - Handle errors from gmail API.
