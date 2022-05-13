@@ -170,11 +170,13 @@ def upload_files(session, files, target_folder='food'):
               # 'hash': 'cc921cf4d95e67d0', # эти параметрыо казались не обязательными... вроде
               # 'langCode': 'ru'
               }
+    f = []
+    for file in files:
+        f.append(session.post(url=url,
+                              headers=h,
+                              params=params,
+                              files=[file]))
 
-    f = session.post(url=url,
-                     headers=h,
-                     params=params,
-                     files=files)
     return f
 
 
@@ -197,12 +199,11 @@ def upload_menus(session):
 def daily_menu():
     g_session = gmail_attachments.connect()
     edu_session = edu_auth(LOGIN, PASSWORD)
-
     data = gmail_attachments.get_attachments(g_session, {'labels': ['Label_7', 'UNREAD']})
     for mail_id, attach in data.items():
         files = normalize_filenames(attach).items()
         upload_files(edu_session, files)
-        post_page(edu_session, page_id=800107, data=get_files(session))
+        post_page(edu_session, page_id=800107, data=get_files(edu_session))
         gmail_attachments.label_modify(g_session, 'me', mail_id, labels_to_remove=['UNREAD'])
 
 
@@ -215,7 +216,7 @@ def normalize_filenames(files_dict):
 
 
 if __name__ == '__main__':
-    session = edu_auth(LOGIN, PASSWORD)
+    # session = edu_auth(LOGIN, PASSWORD)
     # post_page(session, page_id=800107, data={'filename': 'hello.xls'})
     daily_menu()
     # data = get_files(session)
