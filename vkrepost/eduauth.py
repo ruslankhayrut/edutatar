@@ -1,8 +1,10 @@
 import requests
 
 
-def edu_auth(login, password):
+def edu_auth(login, password, proxy=None):
     s = requests.Session()
+    if proxy:
+        s.proxies.update(proxy)
     s.headers.update({"Host": "edu.tatar.ru",
                       # "Origin": "https://edu.tatar.ru",
                       "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) "

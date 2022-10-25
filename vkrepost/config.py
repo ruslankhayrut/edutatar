@@ -4,3 +4,5 @@ API = '5.103'
 OWNER_ID = '289143812'
 LOGIN = '5162000565'
 PASSWORD = 'Prestigio-2'
+# PROXY = {"https": "https://10.0.16.52:3128"}
+PROXY = None

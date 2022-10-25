@@ -1,7 +1,7 @@
 import re
 import os.path
 from remove_emoji import strip_emoji
-from config import LOGIN, PASSWORD
+from config import LOGIN, PASSWORD, PROXY
 from eduauth import edu_auth
 from gmail_api import gmail_attachments
 from bs4 import BeautifulSoup
@@ -197,8 +197,8 @@ def upload_menus(session):
 
 
 def daily_menu():
-    g_session = gmail_attachments.connect()
-    edu_session = edu_auth(LOGIN, PASSWORD)
+    g_session = gmail_attachments.connect(proxy=PROXY)
+    edu_session = edu_auth(LOGIN, PASSWORD, PROXY)
     data = gmail_attachments.get_attachments(g_session, {'labels': ['Label_7', 'UNREAD']})
     for mail_id, attach in data.items():
         files = normalize_filenames(attach).items()
