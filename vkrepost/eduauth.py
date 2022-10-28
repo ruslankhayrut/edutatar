@@ -15,7 +15,6 @@ def edu_auth(login, password, proxy=None):
 
     r = s.post("https://edu.tatar.ru/logon", headers=h,
                data={
-                   # "redirect_url": "https://edu.tatar.ru/start/logon-process",
                    "main_login2": login,
                    "main_password2": password}
                )
@@ -23,8 +22,8 @@ def edu_auth(login, password, proxy=None):
     if 'Личный кабинет' in r.text:
         print('Login successful')
     else:
-        print(
-            'Не удалось войти в аккаунт. Убедитесь, что вы верно ввели логин/пароль и двухфакторная аутентификация отключена.')
+        print('Не удалось войти в аккаунт. '
+              'Убедитесь, что вы верно ввели логин/пароль и двухфакторная аутентификация отключена.')
         raise PermissionError
 
     return s

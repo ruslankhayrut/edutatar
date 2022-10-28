@@ -5,6 +5,7 @@ from config import LOGIN, PASSWORD, PROXY
 from eduauth import edu_auth
 from gmail_api import gmail_attachments
 from bs4 import BeautifulSoup
+from xml.etree import ElementTree
 
 
 def upload_img(session, photo_url):
@@ -113,19 +114,17 @@ def post_page(session, page_id, data):
     url = f'https://edu.tatar.ru/admin/page/simple_page/edit/{page_id}'
     h = {"Referer": url,
          "Content-Type": "application/x-www-form-urlencoded"}
-    r = session.get(url)
-    html = BeautifulSoup(r.text, 'html.parser')
+
     file_links = ''
     for file in data:
         file_links = f'<p><a href="/upload/storage/org1505/files/food/{file[0]}">{file[0]}</a></p>\n' + file_links
-    text = file_links  # + str(html.find_all('textarea', id='simple_page_data')[-1].contents[-1])
-    r = session.post(url=url, headers=h,
+    text = file_links
+    session.post(url=url, headers=h,
                      data={'simple_page[title]': 'Ежедневные Меню',
                            'simple_page[description]': '',
                            'simple_page[data]': text,
                            'simple_page[organization_id]': 1505}
                      )
-    print(r)
 
 
 def get_files(session, from_folder='food'):
@@ -133,12 +132,8 @@ def get_files(session, from_folder='food'):
     params = {'command': 'GetFiles',
               'type': 'Files',
               'currentFolder': f'/{from_folder}/',
-              # 'hash': 'cc921cf4d95e67d0',
-              # 'showThumbs': 1,
-              # 'langCode': 'ru'
               }
     res = session.get(url, params=params)
-    from xml.etree import ElementTree
     files = ElementTree.fromstring(res.content).findall('Files')[0].findall('File')
     files_list = []
     for file in files:
@@ -155,20 +150,17 @@ def upload_file(session, file_path, target_folder):
     data[filename] = img
     f = upload_files(session, data, target_folder)
     img.close()
-    return f.text
+    return f
 
 
 def upload_files(session, files, target_folder='food'):
     h = {"Referer": "https://edu.tatar.ru/",
          }
-    # url = "https://edu.tatar.ru/upload/storage/org1505/files/" + target_folder + '/'
-    # url = "https://edu.tatar.ru/js/ckfinder/core/connector/php/connector.php?command=FileUpload&type=Files&currentFolder=/food/&hash=cc921cf4d95e67d0&langCode=ru"
     url = f"https://edu.tatar.ru/js/ckfinder/core/connector/php/connector.php"
     params = {'command': 'FileUpload',
               'type': 'Files',
               'currentFolder': f"/{target_folder}/",
-              # 'hash': 'cc921cf4d95e67d0', # эти параметрыо казались не обязательными... вроде
-              # 'langCode': 'ru'
+
               }
     f = []
     for file in files:
@@ -216,8 +208,5 @@ def normalize_filenames(files_dict):
 
 
 if __name__ == '__main__':
-    # session = edu_auth(LOGIN, PASSWORD)
-    # post_page(session, page_id=800107, data={'filename': 'hello.xls'})
     daily_menu()
-    # data = get_files(session)
-    # post_page(session, page_id=800107, data=data)
+
