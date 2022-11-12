@@ -31,4 +31,5 @@ data = {
     }
 }
 # data = json.loads(data)
-print(proc(data))
+if __name__ == '__main__':
+    print(proc(data))
