@@ -1,12 +1,12 @@
 import re
 import os.path
-from remove_emoji import strip_emoji
-from config import LOGIN, PASSWORD, PROXY
-from eduauth import edu_auth
+from vkrepost.remove_emoji import strip_emoji
+from vkrepost.config import LOGIN, PASSWORD, PROXY
+from vkrepost.eduauth import edu_auth
 from gmail_api import gmail_attachments
 from bs4 import BeautifulSoup
 from xml.etree import ElementTree
-
+# import logging
 
 def upload_img(session, photo_url):
     h = {"Referer": "https://edu.tatar.ru/upload_crop/show/?aspect_ratio=1&index=1&type=2&img_file=",
@@ -43,6 +43,7 @@ def post_news(data):
     text = strip_emoji(data['text'])
 
     date = data['date']
+    print(date)
     photo_url = data['photo'].get('photo_url')
     title = data['title']
 
@@ -65,9 +66,9 @@ def post_news(data):
 
     session.headers.update({"Host": "edu.tatar.ru",
                             "Origin": "https://edu.tatar.ru",
-                            "User-Agent": "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) \
-                                            AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 \
-                                            YaBrowser/18.10.1.382 (beta) Yowser/2.5 Safari/537.36"
+                            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) \
+                            AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 \
+                            Safari/537.36 OPR/92.0.0.0"
                             })
 
     if photo_url:
@@ -88,14 +89,14 @@ def post_news(data):
         crop = None
 
     h = {"Referer": "https://edu.tatar.ru/admin/page/news/edit?news_block_id={}".format(block_id),
-         "Content-Type": "application/x-www-form-urlencoded"}
+         "Content-Type": "multipart/form-data"}
 
     r = session.post('https://edu.tatar.ru/admin/page/news/edit?news_block_id={}'.format(block_id), headers=h,
-                     data={
+                     files={
                          'news[title]': title,
                          'news[ndate]': date,
                          'news[source]': None,
-                         'news[lead]': lead,
+                         'news[lead]': '<p> {} </p>'.format(lead),
                          'news[text]': '<p> {} </p>'.format(text),
                          'news[imgUCAdjData1]': crop,
                          'news[image_idx]': 1,
@@ -106,6 +107,8 @@ def post_news(data):
                          'news[trans_global]': 0,
                      }
                      )
+
+    # print(r.status_code)
     return r.status_code
 
 
