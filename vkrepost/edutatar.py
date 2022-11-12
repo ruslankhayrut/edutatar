@@ -6,7 +6,8 @@ from vkrepost.eduauth import edu_auth
 from gmail_api import gmail_attachments
 from bs4 import BeautifulSoup
 from xml.etree import ElementTree
-# import logging
+from requests_toolbelt import MultipartEncoder
+
 
 def upload_img(session, photo_url):
     h = {"Referer": "https://edu.tatar.ru/upload_crop/show/?aspect_ratio=1&index=1&type=2&img_file=",
@@ -43,9 +44,9 @@ def post_news(data):
     text = strip_emoji(data['text'])
 
     date = data['date']
-    print(date)
     photo_url = data['photo'].get('photo_url')
     title = data['title']
+    boundary = "my-shiny-boundary"
 
     if not title:
         title, lead = process_text(text)
@@ -88,27 +89,31 @@ def post_news(data):
     else:
         crop = None
 
-    h = {"Referer": "https://edu.tatar.ru/admin/page/news/edit?news_block_id={}".format(block_id),
-         "Content-Type": "multipart/form-data"}
+    h = {"Referer": f"https://edu.tatar.ru/admin/page/news/edit?news_block_id={block_id}",
+         "Content-Type": f"multipart/form-data; boundary={boundary}"}
 
-    r = session.post('https://edu.tatar.ru/admin/page/news/edit?news_block_id={}'.format(block_id), headers=h,
-                     files={
-                         'news[title]': title,
-                         'news[ndate]': date,
-                         'news[source]': None,
-                         'news[lead]': '<p> {} </p>'.format(lead),
-                         'news[text]': '<p> {} </p>'.format(text),
-                         'news[imgUCAdjData1]': crop,
-                         'news[image_idx]': 1,
-                         'news[gallery_id]': None,
-                         'news[videoteka_id]': None,
-                         'news[trans_school]': 0,
-                         'news[trans_region]': 0,
-                         'news[trans_global]': 0,
-                     }
-                     )
+    files = MultipartEncoder(
+        {
+            'news[title]': (None, title),
+            'news[ndate]': (None, date),
+            'news[source]': (None, ""),
+            'news[lead]': (None, f'<p> {lead} </p>'),
+            'news[text]': (None, f'<p> {text} </p>'),
+            'news[imgUCAdjData1]': (None, crop),
+            'news[image_idx]': (None, "1"),
+            'news[gallery_id]': (None, ""),
+            'news[videoteka_id]': (None, ""),
+            'news[trans_school]': (None, "0"),
+            'news[trans_region]': (None, "0"),
+            'news[trans_global]': (None, "0"),
+        },
+        boundary=boundary
+    )
 
-    # print(r.status_code)
+    r = session.post(
+        f'https://edu.tatar.ru/admin/page/news/edit?news_block_id={block_id}', headers=h, data=files.to_string()
+    )
+
     return r.status_code
 
 
@@ -123,11 +128,11 @@ def post_page(session, page_id, data):
         file_links = f'<p><a href="/upload/storage/org1505/files/food/{file[0]}">{file[0]}</a></p>\n' + file_links
     text = file_links
     session.post(url=url, headers=h,
-                     data={'simple_page[title]': 'Ежедневные Меню',
-                           'simple_page[description]': '',
-                           'simple_page[data]': text,
-                           'simple_page[organization_id]': 1505}
-                     )
+                 data={'simple_page[title]': 'Ежедневные Меню',
+                       'simple_page[description]': '',
+                       'simple_page[data]': text,
+                       'simple_page[organization_id]': 1505}
+                 )
 
 
 def get_files(session, from_folder='food'):
@@ -212,4 +217,3 @@ def normalize_filenames(files_dict):
 
 if __name__ == '__main__':
     daily_menu()
-

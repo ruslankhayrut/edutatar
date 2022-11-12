@@ -1,9 +1,3 @@
-import time
-import requests
-import json
-from django.test import TestCase
-from config import *
-# Create your tests here.
 from vkrepost.views import proc
 
 data = {
