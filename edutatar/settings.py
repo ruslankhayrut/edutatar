@@ -33,7 +33,7 @@ LOCAL = os.getenv("LOCAL", "False") == "True"
 VK_TOKEN = os.getenv("VK_TOKEN")
 VK_CONF_STR = os.getenv("VK_CONF_STR")
 VK_API = "5.103"
-VK_OWNER_ID = "535463094"
+VK_OWNER_ID = os.getenv("VK_OWNER_ID", "535463094")  # default fayzut
 
 EDU_LOGIN = os.getenv("EDU_LOGIN")
 EDU_PASSWORD = os.getenv("EDU_PASSWORD")

@@ -1,4 +1,5 @@
 import json
+from traceback import format_exc
 
 from django.conf import settings
 from django.shortcuts import HttpResponse, render
@@ -28,13 +29,17 @@ def process(request):
 
         session = EdutatarSession(settings.EDU_LOGIN, settings.EDU_PASSWORD)
         reposter = VKRepostManager(session)
-        result = reposter.post_news(vk_data)
 
-        msg = (
-            "Новость успешно отправлена"
-            if result.ok
-            else "Во время отправки новости произошла ошибка"
-        )
+        try:
+            result = reposter.post_news(vk_data)
+            msg = "Новость успешно отправлена"
+            if not result.ok:
+                raise RuntimeError(
+                    f"Connection error. Status code {result.status_code}"
+                )
+        except Exception as e:
+            msg = f"Во время отправки новости произошла ошибка.\n{e}\n{format_exc()}"
+
         VKAPI.send_message(settings.VK_OWNER_ID, msg)
 
         return HttpResponse("OK", status=200)
