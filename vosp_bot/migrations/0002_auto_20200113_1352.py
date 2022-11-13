@@ -6,27 +6,36 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('vosp_bot', '0001_initial'),
+        ("vosp_bot", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='vosp',
-            options={'verbose_name': 'Воспитатель', 'verbose_name_plural': 'Воспитатели'},
+            name="vosp",
+            options={
+                "verbose_name": "Воспитатель",
+                "verbose_name_plural": "Воспитатели",
+            },
         ),
         migrations.AlterField(
-            model_name='vosp',
-            name='lunch_duty_day',
-            field=models.DateField(blank=True, null=True, verbose_name='Дата дежурства на ужин'),
+            model_name="vosp",
+            name="lunch_duty_day",
+            field=models.DateField(
+                blank=True, null=True, verbose_name="Дата дежурства на ужин"
+            ),
         ),
         migrations.AlterField(
-            model_name='vosp',
-            name='tea_duty_day1',
-            field=models.DateField(blank=True, null=True, verbose_name='Дата первого дежурства к чаю'),
+            model_name="vosp",
+            name="tea_duty_day1",
+            field=models.DateField(
+                blank=True, null=True, verbose_name="Дата первого дежурства к чаю"
+            ),
         ),
         migrations.AlterField(
-            model_name='vosp',
-            name='tea_duty_day2',
-            field=models.DateField(blank=True, null=True, verbose_name='Дата второго дежурства к чаю'),
+            model_name="vosp",
+            name="tea_duty_day2",
+            field=models.DateField(
+                blank=True, null=True, verbose_name="Дата второго дежурства к чаю"
+            ),
         ),
     ]

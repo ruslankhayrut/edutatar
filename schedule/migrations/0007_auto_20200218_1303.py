@@ -6,17 +6,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('schedule', '0006_auto_20200218_1255'),
+        ("schedule", "0006_auto_20200218_1255"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='schedule',
-            name='day',
+            model_name="schedule",
+            name="day",
         ),
         migrations.AddField(
-            model_name='day',
-            name='schedule',
-            field=models.ManyToManyField(blank=True, null=True, to='schedule.Schedule', verbose_name='Расписание'),
+            model_name="day",
+            name="schedule",
+            field=models.ManyToManyField(
+                blank=True, null=True, to="schedule.Schedule", verbose_name="Расписание"
+            ),
         ),
     ]

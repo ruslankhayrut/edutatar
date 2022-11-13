@@ -7,13 +7,24 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('schedule', '0003_auto_20200218_1014'),
+        ("schedule", "0003_auto_20200218_1014"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='day',
-            name='number',
-            field=models.PositiveSmallIntegerField(unique=True, validators=[django.core.validators.MaxValueValidator(7, 'Введите корректный номер дня'), django.core.validators.MinValueValidator(1, 'Введите корректный номер дня')], verbose_name='День недели (1-7)'),
+            model_name="day",
+            name="number",
+            field=models.PositiveSmallIntegerField(
+                unique=True,
+                validators=[
+                    django.core.validators.MaxValueValidator(
+                        7, "Введите корректный номер дня"
+                    ),
+                    django.core.validators.MinValueValidator(
+                        1, "Введите корректный номер дня"
+                    ),
+                ],
+                verbose_name="День недели (1-7)",
+            ),
         ),
     ]
