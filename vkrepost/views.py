@@ -13,11 +13,9 @@ def info(request):
 
 @csrf_exempt
 def process(request):
-
     if request.method == 'POST':
         data = request.body.decode('utf-8')
         data = json.loads(data)
-
         if data.get('type') == 'confirmation':
             return HttpResponse(CONF_STR)
 
@@ -32,7 +30,7 @@ def process(request):
 
 def proc(data):
     text, photo_data, title = extract_data(data)
-
+    
     return execute(title, text, photo_data)
 
 def execute(title, text, photo_data):
@@ -59,7 +57,6 @@ def send_message(text):
 
 def extract_data(data):
     text = data['object']['text']
-
     title = ''
     photo_data = {}
 
