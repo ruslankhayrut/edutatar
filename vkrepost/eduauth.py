@@ -6,8 +6,12 @@ logger = logging.getLogger("django")
 
 
 class EdutatarSession(Session):
-    def __init__(self, proxy: str = None, *args, **kwargs):
+    def __init__(self, login: str, password: str, proxy: str = None, *args, **kwargs):
         super(EdutatarSession, self).__init__()
+
+        self.__login = login
+        self.__password = password
+
         if proxy:
             self.proxies.update(proxy)
         self.headers.update(
@@ -19,7 +23,7 @@ class EdutatarSession(Session):
             }
         )
 
-    def login(self, login: str, password: str):
+    def login(self):
         headers = {
             "Referer": "https://edu.tatar.ru/start/logon",
         }
@@ -27,7 +31,7 @@ class EdutatarSession(Session):
         r = self.post(
             "https://edu.tatar.ru/logon",
             headers=headers,
-            data={"main_login2": login, "main_password2": password},
+            data={"main_login2": self.__login, "main_password2": self.__password},
         )
 
         if "Личный кабинет" not in r.text:

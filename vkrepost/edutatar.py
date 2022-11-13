@@ -1,115 +1,102 @@
+import datetime
 import os.path
 import re
 from xml.etree import ElementTree
 
 from bs4 import BeautifulSoup
-from django.conf import settings
+from requests.models import Response
 from requests_toolbelt import MultipartEncoder
 
 from vkrepost.eduauth import EdutatarSession
-from vkrepost.remove_emoji import strip_emoji
+from vkrepost.helpers import remove_emoji_from_text
+from vkrepost.vk_site import VKData, VKImage
 
 
-def upload_img(session, photo_url):
-    h = {
-        "Referer": "https://edu.tatar.ru/upload_crop/show/?aspect_ratio=1&index=1&type=2&img_file=",
-    }
-    img = session.get(photo_url)
+class VKRepostManager:
+    def __init__(self, session: EdutatarSession):
+        self.session = session
+        self.boundary = "--my-shiny-boundary"
 
-    file = {"inpUplCrop1": img.content}
+    def _upload_image(self, image: VKImage) -> str:
+        if not image:
+            return ""
 
-    f = session.post(
-        "https://edu.tatar.ru/upload_crop",
-        headers=h,
-        files=file,
-        data={"type": 2, "aspect_ratio": 1},
-    )
-
-    return f.text
-
-
-def post_news(data):
-    text = strip_emoji(data["text"])
-
-    date = data["date"]
-    photo_url = data["photo"].get("photo_url")
-    title = data["title"]
-    boundary = "my-shiny-boundary"
-
-    if not title:
-        title, lead = process_text(text)
-    else:
-        lead = process_text(text)[1]
-
-    session = edu_auth(settings.EDU_LOGIN, settings.EDU_PASSWORD)
-
-    session.get("https://edu.tatar.ru")
-    r = session.get("https://edu.tatar.ru/admin/page/news_block")
-
-    html = BeautifulSoup(r.text, "html.parser")
-
-    table = html.find_all("table")[0]
-    news_block = table.findAllNext("tr")[1]
-    link = news_block.find("a", href=True, text="Новости...")["href"]
-    block_id = re.findall(r"\d+", link)[0]
-
-    session.headers.update(
-        {
-            "Host": "edu.tatar.ru",
-            "Origin": "https://edu.tatar.ru",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) \
-                            AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 \
-                            Safari/537.36 OPR/92.0.0.0",
+        h = {
+            "Referer": "https://edu.tatar.ru/upload_crop/show/?aspect_ratio=1&index=1&type=2&img_file="
         }
-    )
+        img = self.session.get(image.photo_url)
+        file = {"inpUplCrop1": img.content}
 
-    if photo_url:
-        upload_img(session, photo_url)
-        width = data["photo"]["width"]
-        height = data["photo"]["height"]
+        self.session.post(
+            "https://edu.tatar.ru/upload_crop",
+            headers=h,
+            files=file,
+            data={"type": 2, "aspect_ratio": 1},
+        )
+
+        width, height = image.width, image.height
 
         h = 145 * int(width / 220)
         w = 220 * int(height / 145)
         if height >= h:
-            crop = "0|0|{0}|{1}|{0}|{1}".format(width, h)
+            crop = f"0|0|{width}|{h}|{width}|{h}"
         elif width >= w:
-            crop = "0|0|{0}|{1}|{0}|{1}".format(w, height)
+            crop = f"0|0|{w}|{height}|{w}|{height}"
         else:
             crop = "0|0|220|145|220|145"
+        return crop
 
-    else:
-        crop = None
+    def _get_block_id(self) -> str:
+        self.session.get("https://edu.tatar.ru")
+        r = self.session.get("https://edu.tatar.ru/admin/page/news_block")
 
-    h = {
-        "Referer": f"https://edu.tatar.ru/admin/page/news/edit?news_block_id={block_id}",
-        "Content-Type": f"multipart/form-data; boundary={boundary}",
-    }
+        html = BeautifulSoup(r.text, "html.parser")
 
-    files = MultipartEncoder(
-        {
-            "news[title]": (None, title),
-            "news[ndate]": (None, date),
-            "news[source]": (None, ""),
-            "news[lead]": (None, f"<p> {lead} </p>"),
-            "news[text]": (None, f"<p> {text} </p>"),
-            "news[imgUCAdjData1]": (None, crop),
-            "news[image_idx]": (None, "1"),
-            "news[gallery_id]": (None, ""),
-            "news[videoteka_id]": (None, ""),
-            "news[trans_school]": (None, "0"),
-            "news[trans_region]": (None, "0"),
-            "news[trans_global]": (None, "0"),
-        },
-        boundary=boundary,
-    )
+        table = html.find_all("table")[0]
+        news_block = table.findAllNext("tr")[1]
+        link = news_block.find("a", href=True, text="Новости...")["href"]
+        block_id = re.findall(r"\d+", link)[0]
+        return block_id
 
-    r = session.post(
-        f"https://edu.tatar.ru/admin/page/news/edit?news_block_id={block_id}",
-        headers=h,
-        data=files.to_string(),
-    )
+    def post_news(self, data: VKData) -> Response:
+        text = remove_emoji_from_text(data.text)
+        date = datetime.date.today().strftime("%d.%m.%Y")
 
-    return r
+        self.session.login()
+        block_id = self._get_block_id()
+
+        crop = self._upload_image(data.photo)
+
+        h = {
+            "Referer": f"https://edu.tatar.ru/admin/page/news/edit?news_block_id={block_id}",
+            "Content-Type": f"multipart/form-data; boundary={self.boundary}",
+        }
+
+        files = MultipartEncoder(
+            {
+                "news[title]": (None, data.title),
+                "news[ndate]": (None, date),
+                "news[source]": (None, ""),
+                "news[lead]": (None, f"{data.lead}"),
+                "news[text]": (None, f"{text}"),
+                "news[imgUCAdjData1]": (None, crop),
+                "news[image_idx]": (None, "1"),
+                "news[gallery_id]": (None, ""),
+                "news[videoteka_id]": (None, ""),
+                "news[trans_school]": (None, "0"),
+                "news[trans_region]": (None, "0"),
+                "news[trans_global]": (None, "0"),
+            },
+            boundary=self.boundary,
+        )
+
+        r = self.session.post(
+            f"https://edu.tatar.ru/admin/page/news/edit?news_block_id={block_id}",
+            headers=h,
+            data=files.to_string(),
+        )
+
+        return r
 
 
 def post_page(session, page_id, data):

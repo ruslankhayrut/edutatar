@@ -4,7 +4,8 @@ from django.conf import settings
 from django.shortcuts import HttpResponse, render
 from django.views.decorators.csrf import csrf_exempt
 
-from .edutatar import post_news
+from .eduauth import EdutatarSession
+from .edutatar import VKRepostManager
 from .vk_site import VKAPI, VKData
 
 
@@ -24,7 +25,10 @@ def process(request):
 
     if data.get("type") == "wall_post_new":
         vk_data = VKData.from_json(data)
-        result = post_news(vk_data)
+
+        session = EdutatarSession(settings.EDU_LOGIN, settings.EDU_PASSWORD)
+        reposter = VKRepostManager(session)
+        result = reposter.post_news(vk_data)
 
         msg = (
             "Новость успешно отправлена"
