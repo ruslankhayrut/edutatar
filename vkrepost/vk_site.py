@@ -61,10 +61,8 @@ class VKData:
         if attachment["type"] not in ("photo", "album"):
             return VKImage()
 
-        if attachment["type"] == "photo":
-            first_photo = attachment["photo"]["sizes"][-1]  # the biggest one
-        else:
-            first_photo = attachment["thumb"]["sizes"][-1]
+        first_photo = attachment["photo"] if attachment["type"] == "photo" else attachment["thumb"]
+        first_photo = first_photo["sizes"][-1]
 
         url = first_photo["url"]
         width = first_photo["width"]
