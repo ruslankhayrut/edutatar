@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'vosp_bot.apps.VospBotConfig',
     'schedule.apps.ScheduleConfig',
     'hatim_bot.apps.HatimBotConfig',
-    'mufteam_bot.apps.MufteamBotConfig'
 ]
 
 
