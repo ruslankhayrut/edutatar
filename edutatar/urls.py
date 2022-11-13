@@ -18,15 +18,10 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-from journal_parser.views import act, index
-
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("journal/", include("journal_parser.urls")),
     path("vkrepost/", include("vkrepost.urls")),
     path("vospbot/", include("vosp_bot.urls")),
     path("schedule/", include("schedule.urls")),
-    path("", index, name="index"),
-    path("act", act, name="act"),
     path("sharebot/", include("hatim_bot.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

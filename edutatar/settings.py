@@ -51,7 +51,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "journal_parser.apps.JournalParserConfig",
     "vkrepost.apps.VkrepostConfig",
     "vosp_bot.apps.VospBotConfig",
     "schedule.apps.ScheduleConfig",
