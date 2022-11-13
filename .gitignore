@@ -6,3 +6,4 @@ journal_parser/__pycache__/
 journal_parser/JournalParser/__pycache__/
 **/__pycache__/
 *.pyc
+.env

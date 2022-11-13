@@ -3,10 +3,10 @@ import json
 import time
 
 import requests
+from django.conf import settings
 from django.shortcuts import HttpResponse, render
 from django.views.decorators.csrf import csrf_exempt
 
-from .config import API, CONF_STR, OWNER_ID, TOKEN
 from .edutatar import post_news
 
 
@@ -20,7 +20,7 @@ def process(request):
         data = request.body.decode("utf-8")
         data = json.loads(data)
         if data.get("type") == "confirmation":
-            return HttpResponse(CONF_STR)
+            return HttpResponse(settings.VK_CONF_STR)
 
         elif data.get("type") == "wall_post_new":
             proc(data)
@@ -53,7 +53,7 @@ def execute(title, text, photo_data):
 
 def send_message(text):
     url = "https://api.vk.com/method/messages.send?user_id={0}&message={1}&access_token={2}&v={3}&random_id={4}".format(
-        OWNER_ID, text, TOKEN, API, int(time.time())
+        settings.VK_OWNER_ID, text, settings.VK_TOKEN, settings.VK_API, int(time.time())
     )
     r = requests.post(url)
     return r

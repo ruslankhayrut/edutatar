@@ -13,23 +13,19 @@ def edu_auth(login, password, proxy=None):
             "Mobile Safari/537.36",
         }
     )
-    h = {
+    headers = {
         "Referer": "https://edu.tatar.ru/start/logon",
     }
 
     r = s.post(
         "https://edu.tatar.ru/logon",
-        headers=h,
+        headers=headers,
         data={"main_login2": login, "main_password2": password},
     )
 
-    if "Личный кабинет" in r.text:
-        print("Login successful")
-    else:
-        print(
+    if "Личный кабинет" not in r.text:
+        raise PermissionError(
             "Не удалось войти в аккаунт. "
             "Убедитесь, что вы верно ввели логин/пароль и двухфакторная аутентификация отключена."
         )
-        raise PermissionError
-
     return s

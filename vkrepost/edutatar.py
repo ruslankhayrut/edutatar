@@ -3,9 +3,9 @@ import re
 from xml.etree import ElementTree
 
 from bs4 import BeautifulSoup
+from django.conf import settings
 from requests_toolbelt import MultipartEncoder
 
-from vkrepost.config import LOGIN, PASSWORD, PROXY
 from vkrepost.eduauth import edu_auth
 from vkrepost.remove_emoji import strip_emoji
 
@@ -57,7 +57,7 @@ def post_news(data):
     else:
         lead = process_text(text)[1]
 
-    session = edu_auth(LOGIN, PASSWORD)
+    session = edu_auth(settings.EDU_LOGIN, settings.EDU_PASSWORD)
 
     session.get("https://edu.tatar.ru")
     r = session.get("https://edu.tatar.ru/admin/page/news_block")

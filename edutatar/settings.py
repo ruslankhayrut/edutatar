@@ -12,7 +12,9 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 
-from .global_conf import DEBUG
+import dotenv
+
+dotenv.load_dotenv()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,7 +27,17 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = "te6kelptq&ra+!4yyn^x3iqx%gcukh%9n%6f=i(cu5d(1n6&v0"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = DEBUG
+DEBUG = os.getenv("DEBUG", "False") == "True"
+LOCAL = os.getenv("LOCAL", "False") == "True"
+
+VK_TOKEN = os.getenv("VK_TOKEN")
+VK_CONF_STR = os.getenv("VK_CONF_STR")
+VK_API = "5.103"
+VK_OWNER_ID = "535463094"
+
+EDU_LOGIN = os.getenv("EDU_LOGIN")
+EDU_PASSWORD = os.getenv("EDU_PASSWORD")
+EDU_PROXY = os.getenv("EDU_PROXY")
 
 ALLOWED_HOSTS = ["*"]
 
