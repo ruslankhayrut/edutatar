@@ -1,10 +1,10 @@
 from django.urls import path
-from .config import token
 
 from . import views
+from .config import token
 
-app_name = 'vosp_bot'
+app_name = "vosp_bot"
 urlpatterns = [
-    path(token, views.index, name='index'),
-    path('', views.set_webhook, name='set_webhook'),
+    path(token, views.index, name="index"),
+    path("", views.set_webhook, name="set_webhook"),
 ]

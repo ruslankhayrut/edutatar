@@ -1,5 +1,7 @@
 from django.contrib import admin
+
 from .models import *
+
 # Register your models here.
 
 
@@ -9,18 +11,19 @@ def make_unread(modeladmin, request, queryset):
     hatim.finished = False
     hatim.save()
 
-make_unread.short_description = 'Сделать свободными'
+
+make_unread.short_description = "Сделать свободными"
 
 
 class JuzAdmin(admin.ModelAdmin):
     actions = [make_unread]
-    list_display = ('hatim', 'number', 'status', 'reader', 'get_date')
-    list_filter = ('hatim', )
+    list_display = ("hatim", "number", "status", "reader", "get_date")
+    list_filter = ("hatim",)
 
     def get_date(self, obj):
         return obj.reader.take_date
 
-    get_date.short_description = 'Когда взял'
+    get_date.short_description = "Когда взял"
 
 
 class JuzInline(admin.TabularInline):
@@ -32,16 +35,29 @@ class HatimAdmin(admin.ModelAdmin):
 
     inlines = [JuzInline]
 
-    list_display = ('__str__', 'finished', )
+    list_display = (
+        "__str__",
+        "finished",
+    )
 
 
 class CounterAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'value')
+    list_display = ("__str__", "value")
+
 
 class ReaderAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'fullname', 'username', 'taken_juz', 'take_date', 'exp_date', 'read_counter', 'reading_speed')
+    list_display = (
+        "__str__",
+        "fullname",
+        "username",
+        "taken_juz",
+        "take_date",
+        "exp_date",
+        "read_counter",
+        "reading_speed",
+    )
 
-    readonly_fields = ('exp_date', 'fullname', 'username', 'reading_speed')
+    readonly_fields = ("exp_date", "fullname", "username", "reading_speed")
 
 
 admin.site.register(Hatim, HatimAdmin)

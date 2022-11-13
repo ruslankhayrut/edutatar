@@ -1,31 +1,35 @@
 """"Author: Ruslan Khairutdinov onsunday1703@gmail.com"""
 
 import datetime
+
 from bs4 import BeautifulSoup
+
 from .fill_checker import fill_checker
-from .str_to_date import str_to_date, m
 from .params import STR_MARKS
+from .str_to_date import m, str_to_date
+
 
 def get_journal_info(data):
 
-    session = data['session']
-    term = data['term']
-    criteria = data['criteria']
-    class_id = data['class_id']
-    year = data['year']
-    params = data['params']
+    session = data["session"]
+    term = data["term"]
+    criteria = data["criteria"]
+    class_id = data["class_id"]
+    year = data["year"]
+    params = data["params"]
 
-
-    journal_url = 'https://edu.tatar.ru/school/journal/school_editor?term={0}' \
-                  '&criteria={1}&edu_class_id={2}&' \
-                  'show_moved_pupils=0'.format(term, criteria[0], class_id)
+    journal_url = (
+        "https://edu.tatar.ru/school/journal/school_editor?term={0}"
+        "&criteria={1}&edu_class_id={2}&"
+        "show_moved_pupils=0".format(term, criteria[0], class_id)
+    )
     journal = session.get(journal_url)
-    html = BeautifulSoup(journal.text, 'html.parser')
+    html = BeautifulSoup(journal.text, "html.parser")
 
-    if criteria[1][1].startswith('Электив'):
+    if criteria[1][1].startswith("Электив"):
         return False
 
-    teacher = html.find('div', {'class': 'line last'})
+    teacher = html.find("div", {"class": "line last"})
     if teacher:
         try:
             teacher = teacher.text.strip().split(maxsplit=1)[1]
@@ -35,42 +39,52 @@ def get_journal_info(data):
     if params.only_term:
         last_page = 1
     else:
-        pages = html.find('div', {'class': 'pages'})
+        pages = html.find("div", {"class": "pages"})
 
-        pages = [p for p in pages.text.split() if (p.isdigit() or p == '>>')]
+        pages = [p for p in pages.text.split() if (p.isdigit() or p == ">>")]
 
         if pages:
-            if pages[-1] != '>>':
+            if pages[-1] != ">>":
                 last_page = int(pages[-1])
             else:
-                r = session.get('https://edu.tatar.ru/school/journal/school_editor?term={0}' \
-                      '&criteria={1}&edu_class_id={2}&' \
-                      'show_moved_pupils=0&page={3}'.format(term, criteria[0], class_id, int(pages[-2])+1))
-                html = BeautifulSoup(r.text, 'html.parser')
-                pages = html.find('div', {'class': 'pages'})
+                r = session.get(
+                    "https://edu.tatar.ru/school/journal/school_editor?term={0}"
+                    "&criteria={1}&edu_class_id={2}&"
+                    "show_moved_pupils=0&page={3}".format(
+                        term, criteria[0], class_id, int(pages[-2]) + 1
+                    )
+                )
+                html = BeautifulSoup(r.text, "html.parser")
+                pages = html.find("div", {"class": "pages"})
                 pages = [p for p in pages.text.split() if p.isdigit()]
                 last_page = int(pages[-1])
         else:
             last_page = 1
 
-
-    pagedata = {'teacher': teacher, 'term': int(term), 'subject': criteria[1][1], 'months': [], 'dates': [], 'lessons': [],
-                'marks': {'common': [], 'term_marks': [], 'average_marks': []}}
+    pagedata = {
+        "teacher": teacher,
+        "term": int(term),
+        "subject": criteria[1][1],
+        "months": [],
+        "dates": [],
+        "lessons": [],
+        "marks": {"common": [], "term_marks": [], "average_marks": []},
+    }
 
     cont = True
 
+    for page in range(1, last_page + 1):  # look through the pages in the quarter
 
-    for page in range(1, last_page+1): #look through the pages in the quarter
-
-        journal_url = 'https://edu.tatar.ru/school/journal/school_editor?term={0}' \
-                      '&criteria={1}&edu_class_id={2}&' \
-                      'show_moved_pupils=0&page={3}'.format(term, criteria[0], class_id, page)
+        journal_url = (
+            "https://edu.tatar.ru/school/journal/school_editor?term={0}"
+            "&criteria={1}&edu_class_id={2}&"
+            "show_moved_pupils=0&page={3}".format(term, criteria[0], class_id, page)
+        )
         journal = session.get(journal_url)
-        html = BeautifulSoup(journal.text, 'html.parser')
-
+        html = BeautifulSoup(journal.text, "html.parser")
 
         months = get_months(html)
-        pagedata['months'] += months
+        pagedata["months"] += months
 
         datenums = get_dates(html)
 
@@ -79,38 +93,41 @@ def get_journal_info(data):
         meta_check = params.check_meta
         lessons = get_lessons(html, len(dates), meta_check)
 
-        pagedata['dates'] += dates
-        pagedata['lessons'] += lessons
+        pagedata["dates"] += dates
+        pagedata["lessons"] += lessons
 
         req_marks = {
-            'common': (params.check_lessons_fill, params.check_students_fill,
-                       params.check_double_two),
-            'term': params.check_term_marks
+            "common": (
+                params.check_lessons_fill,
+                params.check_students_fill,
+                params.check_double_two,
+            ),
+            "term": params.check_term_marks,
         }
 
         marks, term_marks, average_marks = get_marks(html, page, len(dates), req_marks)
         if page == 1:
-            pagedata['marks']['common'] += marks
+            pagedata["marks"]["common"] += marks
             if term_marks and term_marks.count(None) != len(term_marks):
-                pagedata['marks']['term_marks'] += term_marks
-                pagedata['marks']['average_marks'] += average_marks
+                pagedata["marks"]["term_marks"] += term_marks
+                pagedata["marks"]["average_marks"] += average_marks
 
             if len(marks) > 0:
-                pagedata['students_count'] = len(marks)
+                pagedata["students_count"] = len(marks)
             else:
                 return False
 
         else:
-            st = pagedata['students_count']
+            st = pagedata["students_count"]
             for i in range(st):
-                pagedata['marks']['common'][i] += marks[i]
+                pagedata["marks"]["common"][i] += marks[i]
 
         if stop:
             cont = False
             break
 
     """Check quarter columns if filled properly"""
-    fill_checker(sheet=data['sheet'], page_data=pagedata, params=data['params'])
+    fill_checker(sheet=data["sheet"], page_data=pagedata, params=data["params"])
 
     return cont
 
@@ -118,19 +135,24 @@ def get_journal_info(data):
 def get_months(html):
     months_list = []
 
-    months = html.find(text='Ученики').findAllNext('td', text=lambda text: text in m)
+    months = html.find(text="Ученики").findAllNext("td", text=lambda text: text in m)
 
     for month in months:
-        days = int(month['colspan'])
+        days = int(month["colspan"])
         months_list.append((month.text, days))
     return months_list
 
 
 def get_dates(html):
-    dts = html.find('table', {'class': 'table'}).findNext('tr').findNext('tr').find_all('td')
+    dts = (
+        html.find("table", {"class": "table"})
+        .findNext("tr")
+        .findNext("tr")
+        .find_all("td")
+    )
     datenums = []
     for date in dts:
-        joint = int(date['colspan'])
+        joint = int(date["colspan"])
         for i in range(joint):
             datenums.append(int(date.text))
     return datenums
@@ -141,9 +163,9 @@ def create_dates(months, dates, year):
     stop = False
     k = 0
     for month in months:
-        for i in range(month[1]): #colspan
+        for i in range(month[1]):  # colspan
             date = str_to_date(dates[k], month[0], year)
-            if date > datetime.date.today(): #don't parse the future
+            if date > datetime.date.today():  # don't parse the future
                 stop = True
                 return arr, stop
             arr.append(date)
@@ -152,30 +174,39 @@ def create_dates(months, dates, year):
 
 
 def get_lessons(html, n, meta_check):
-    lessons = html.find('table', {'class': 'table'}).findNext('tr').findNext('tr').findNext('tr').find_all('td')
+    lessons = (
+        html.find("table", {"class": "table"})
+        .findNext("tr")
+        .findNext("tr")
+        .findNext("tr")
+        .find_all("td")
+    )
     lesson_types = []
     for lesson in lessons:
         if meta_check:
             try:
-                meta = lesson.get('title').split('\n\n')[:2]
+                meta = lesson.get("title").split("\n\n")[:2]
             except AttributeError:
                 meta = None
             if len(meta) != 2:
                 meta = None
         else:
             meta = None
-        lesson_types.append({'type': lesson.text, 'meta': meta})
+        lesson_types.append({"type": lesson.text, "meta": meta})
     return lesson_types[:n]
+
 
 def get_marks(html, page, n, req_marks):
     marks = []
-    rows = html.find('tbody').findAllNext('tr')
+    rows = html.find("tbody").findAllNext("tr")
     term_marks = []
     average_marks = []
-    for row in rows[:-2]: #remove service rows
-        if 'on' in req_marks['common']: #get common marks, if none is checked don't get them
+    for row in rows[:-2]:  # remove service rows
+        if (
+            "on" in req_marks["common"]
+        ):  # get common marks, if none is checked don't get them
             marks_row = []
-            cols = row.find_all('td', {'class': 'mark'})
+            cols = row.find_all("td", {"class": "mark"})
             for col in cols:
                 mark = col.text.strip()
                 if mark in STR_MARKS:
@@ -184,15 +215,23 @@ def get_marks(html, page, n, req_marks):
             marks_row = marks_row[:n]
             marks.append(marks_row)
 
-        if page == 1 and req_marks['term']: # if term marks to be collected
+        if page == 1 and req_marks["term"]:  # if term marks to be collected
             try:
-                average = float(row.find_all('td', {'class': 'mark'})[-1].text.strip().replace(',', '.'))
+                average = float(
+                    row.find_all("td", {"class": "mark"})[-1]
+                    .text.strip()
+                    .replace(",", ".")
+                )
             except ValueError:
                 average = None
             average_marks.append(average)
 
             try:
-                tm = row.find('td', {'class': 'term-mark db-border-left'}).findNext('div').text.strip()
+                tm = (
+                    row.find("td", {"class": "term-mark db-border-left"})
+                    .findNext("div")
+                    .text.strip()
+                )
                 if tm in STR_MARKS:
                     term_mark = int(tm)
                     term_marks.append(term_mark)

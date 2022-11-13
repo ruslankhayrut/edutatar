@@ -1,21 +1,24 @@
-from django.shortcuts import render, HttpResponse
-from .models import *
 import datetime
+
+from django.shortcuts import HttpResponse, render
+
+from .models import *
+
 
 # Create your views here.
 def model_to_dict(obj, exclude=()):
     d = {}
     for key, val in obj.__dict__.items():
-        if key not in (exclude, '_state'):
+        if key not in (exclude, "_state"):
             if not isinstance(val, datetime.time):
                 d[key] = val
             else:
-                d[key] = '{}:{}'.format(val.hour, val.minute)
+                d[key] = "{}:{}".format(val.hour, val.minute)
     return d
 
 
 def index(request):
-    if request.method == 'GET':
+    if request.method == "GET":
         d_number = datetime.datetime.now().isoweekday()
         this_day = Day.objects.get(number=d_number)
         today_schedule = this_day.schedule.id
@@ -24,18 +27,14 @@ def index(request):
         today_lessons = Lesson.objects.filter(schedule=today_schedule)
         today_breaks = Break.objects.filter(schedule=today_schedule)
 
+        lessons = [
+            model_to_dict(lesson, exclude=("id", "schedule"))
+            for lesson in today_lessons
+        ]
+        b = [model_to_dict(br, exclude="id") for br in today_breaks]
 
+        data = {"lessons": lessons, "breaks": b, "alt_message": alt_message}
 
-        l = [model_to_dict(lesson, exclude=('id', 'schedule')) for lesson in today_lessons]
-        b = [model_to_dict(br, exclude='id') for br in today_breaks]
-
-        data = {
-            'lessons': l,
-            'breaks': b,
-            'alt_message': alt_message
-        }
-
-        return render(request, 'schedule/index.html', data)
+        return render(request, "schedule/index.html", data)
 
     return HttpResponse(status=200)
-

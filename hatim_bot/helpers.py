@@ -1,5 +1,6 @@
-from hatim_bot.models import Reader
 from functools import wraps
+
+from hatim_bot.models import Reader
 
 
 def standings_generator(readers, count, filler):
@@ -24,29 +25,31 @@ def standings_generator(readers, count, filler):
             return
 
 
-def create_standings_table(reader, all_readers, count=10, filler='='):
-    table = '*Место   Прочитано глав*\n'
+def create_standings_table(reader, all_readers, count=10, filler="="):
+    table = "*Место   Прочитано глав*\n"
 
     standings = standings_generator(all_readers, count, filler)
 
     reader_in = False
     for place, reader_ in standings:
 
-        row = '\n      {}                {}'.format(place, reader_.read_counter)
+        row = "\n      {}                {}".format(place, reader_.read_counter)
 
         if reader == reader_:
-            row = '*' + row + '*  <<'
+            row = "*" + row + "*  <<"
             reader_in = True
 
         table += row
 
     if not reader_in:
-        table += '\n      ...\n*      {}               {}* <<'.format(list(all_readers).index(reader) + 1, reader.read_counter)
+        table += "\n      ...\n*      {}               {}* <<".format(
+            list(all_readers).index(reader) + 1, reader.read_counter
+        )
 
     return table
 
-def grab_name(func):
 
+def grab_name(func):
     @wraps(func)
     def wrapper(message, *args, **kwargs):
 
@@ -55,7 +58,9 @@ def grab_name(func):
         username = message.from_user.username
 
         reader = Reader.objects.get(tg_id=message.from_user.id)
-        if not any((reader.first_name, reader.last_name, reader.username)) and any((first_name, last_name, username)):
+        if not any((reader.first_name, reader.last_name, reader.username)) and any(
+            (first_name, last_name, username)
+        ):
 
             if first_name:
                 reader.first_name = first_name
