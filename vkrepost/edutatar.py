@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from django.conf import settings
 from requests_toolbelt import MultipartEncoder
 
-from vkrepost.eduauth import edu_auth
+from vkrepost.eduauth import EdutatarSession
 from vkrepost.remove_emoji import strip_emoji
 
 
@@ -26,22 +26,6 @@ def upload_img(session, photo_url):
     )
 
     return f.text
-
-
-def process_text(text):
-    words = [w.strip(' ,;:@"*()') for w in text.split()]
-    sentences = re.split("[.?!]", text)
-    try:
-        title = words[0] + " " + words[1]
-    except IndexError:
-        title = words[0]
-
-    if sentences[0] != text:
-        lead = sentences[0] + "..."
-    else:
-        lead = None
-
-    return title, lead
 
 
 def post_news(data):
@@ -125,7 +109,7 @@ def post_news(data):
         data=files.to_string(),
     )
 
-    return r.status_code
+    return r
 
 
 def post_page(session, page_id, data):
