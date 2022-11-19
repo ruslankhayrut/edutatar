@@ -193,19 +193,19 @@ def upload_menus(session):
     upload_multiple_files(session, list_of_filenames)
 
 
-# def daily_menu():
-#     g_session = gmail_attachments.connect(proxy=PROXY)
-#     edu_session = edu_auth(LOGIN, PASSWORD, PROXY)
-#     data = gmail_attachments.get_attachments(
-#         g_session, {"labels": ["Label_7", "UNREAD"]}
-#     )
-#     for mail_id, attach in data.items():
-#         files = normalize_filenames(attach).items()
-#         upload_files(edu_session, files)
-#         post_page(edu_session, page_id=800107, data=get_files(edu_session))
-#         gmail_attachments.label_modify(
-#             g_session, "me", mail_id, labels_to_remove=["UNREAD"]
-#         )
+def daily_menu():
+    g_session = gmail_attachments.connect(proxy=PROXY)
+    edu_session = edu_auth(LOGIN, PASSWORD, PROXY)
+    data = gmail_attachments.get_attachments(
+        g_session, {"labels": ["Label_7", "UNREAD"]}
+    )
+    for mail_id, attach in data.items():
+        files = normalize_filenames(attach).items()
+        upload_files(edu_session, files)
+        post_page(edu_session, page_id=800107, data=get_files(edu_session))
+        gmail_attachments.label_modify(
+            g_session, "me", mail_id, labels_to_remove=["UNREAD"]
+        )
 
 
 def normalize_filenames(files_dict):
@@ -218,4 +218,4 @@ def normalize_filenames(files_dict):
 
 if __name__ == "__main__":
     pass
-    # daily_menu()
+    daily_menu()
