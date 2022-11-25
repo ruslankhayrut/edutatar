@@ -99,7 +99,6 @@ class VKRepostManager:
         return r
 
 
-
 class MenuUploader:
     def __init__(self, edu_session: EdutatarSession, gmail_session):
         self.ed_session = edu_session
@@ -163,7 +162,6 @@ class MenuUploader:
         img.close()
         return f
 
-
     def upload_files(self, session, files, target_folder="food"):
         h = {
             "Referer": "https://edu.tatar.ru/",
@@ -180,11 +178,9 @@ class MenuUploader:
 
         return f
 
-
     def upload_multiple_files(self, session, files_list):
         for filename in files_list:
             print(self.upload_file(session, filename, "food"))
-
 
     def upload_menus(self, session):
         list_of_filenames = []
@@ -196,10 +192,17 @@ class MenuUploader:
 
         self.upload_multiple_files(session, list_of_filenames)
 
+    def normalize_filenames(self, files_dict):
+        res = {}
+        for key in files_dict.keys():
+            new_key = key[: key.find("sm") + 2] + key[key.find("."):]
+            res[new_key] = files_dict[key]
+        return res
+
 
 def daily_menu():
     g_session = gmail_attachments.connect(proxy=PROXY)
-    edu_session = edu_auth(LOGIN, PASSWORD, PROXY)
+    edu_session = EdutatarSession(LOGIN, PASSWORD, PROXY)
     data = gmail_attachments.get_attachments(
         g_session, {"labels": ["Label_7", "UNREAD"]}
     )
@@ -210,14 +213,6 @@ def daily_menu():
         gmail_attachments.label_modify(
             g_session, "me", mail_id, labels_to_remove=["UNREAD"]
         )
-
-
-def normalize_filenames(files_dict):
-    res = {}
-    for key in files_dict.keys():
-        new_key = key[: key.find("sm") + 2] + key[key.find(".") :]
-        res[new_key] = files_dict[key]
-    return res
 
 
 if __name__ == "__main__":
