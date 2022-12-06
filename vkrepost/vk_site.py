@@ -45,7 +45,7 @@ class VKData:
 
     @property
     def lead(self) -> str:
-        return ""
+        return self.data["object"]["text"][:100]
 
     @property
     def text(self) -> str:
