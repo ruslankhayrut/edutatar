@@ -54,19 +54,15 @@ p {
     var lessons = {{lessons|safe}}
     var breaks = {{breaks|safe}}
 
-
     console.log(lessons)
     console.log(breaks)
-
 
     window.onload = divUpd();
 
     function get_time(string) {
-
         var array = string.split(':')
         var lesson_time = new Date(2000, 1, 1, parseInt(array[0]), parseInt(array[1]))
         return lesson_time.getTime()
-
     };
 
     function getData() {
@@ -74,16 +70,14 @@ p {
         var h = this_day.getHours();
         var m = this_day.getMinutes();
         var now_time = new Date(2000, 1, 1, h, m);
-        console.log(now_time)
-        for (var i=0; i < lessons.length; i++) {
-            var lesson = lessons[i]
-            var ms_time = get_time(lesson.start_time)
-            var l_st_time = new Date(ms_time)
 
-            var l_en_time = new Date(ms_time)
+        for (let lesson of lessons) {
+            const ms_time = get_time(lesson.start_time)
+
+            const l_st_time = new Date(ms_time)
+            let l_en_time = new Date(ms_time)
+
             l_en_time.setMinutes(l_st_time.getMinutes() + lesson.duration)
-
-            console.log(l_st_time, l_en_time)
 
             if (l_st_time <= now_time && now_time <= l_en_time) {
                 l_number = lesson.number
@@ -97,14 +91,13 @@ p {
             }
         }
 
-        for (var i=0; i < breaks.length; i++) {
-            var br = breaks[i]
-            var ms_time = get_time(br.start_time)
-            var br_st_time = new Date(ms_time)
-            var br_en_time = new Date(ms_time)
+        for (let br of breaks) {
+            const ms_time = get_time(br.start_time)
+            const br_st_time = new Date(ms_time)
+            let br_en_time = new Date(ms_time)
+
             br_en_time.setMinutes(br_st_time.getMinutes() + br.duration)
 
-            console.log(br_st_time, br_en_time)
             if (br_st_time < now_time && now_time < br_en_time) {
               	end_mins = br_en_time.getMinutes()
               	if (end_mins < 10) {
@@ -115,6 +108,7 @@ p {
                 return html
             }
         }
+
         if (m < 10) {
             m = `0${m}`
         }
@@ -136,7 +130,7 @@ p {
     setTimeout(function(){location.reload();}, 1000*60*60*(24-td.getHours()))
 
 <!--Polling-->
-    setInterval(divUpd, 1000*30)
+    setInterval(divUpd, 1000)
 
 
 </script>
