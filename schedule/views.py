@@ -1,6 +1,7 @@
 import datetime
 
 from django.shortcuts import HttpResponse, render
+from django.views.decorators.clickjacking import xframe_options_exempt
 
 from .models import *
 
@@ -17,6 +18,7 @@ def model_to_dict(obj, exclude=()):
     return d
 
 
+@xframe_options_exempt
 def index(request):
     if request.method == "GET":
         d_number = datetime.datetime.now().isoweekday()
