@@ -1,7 +1,9 @@
 import requests
 import telebot
-from django.shortcuts import HttpResponse, render
+from django.http.response import JsonResponse
+from django.shortcuts import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from telebot.types import (
     CallbackQuery,
     InlineKeyboardButton,
@@ -26,63 +28,53 @@ finish_reject_kb.add(
 
 
 @csrf_exempt
+@require_http_methods(["POST"])
 def index(request):
-    if request.method != "POST":
-        return HttpResponse(status=403)
     if request.META.get("CONTENT_TYPE") != "application/json":
         return HttpResponse(status=403)
 
     json_string = request.body.decode("utf-8")
     update = telebot.types.Update.de_json(json_string)
     bot.process_new_updates([update])
-
-    return render(request, "journal_parser/index.html")
+    return JsonResponse({"status": "OK"}, status=200)
 
 
 def set_webhook(request):
-    URL1 = "https://api.telegram.org/bot{}/setWebhook?".format(token)
-    URL2 = "url={}/sharebot/{}".format(hook_url, token)
-    r = requests.post("https://api.telegram.org/bot{}/deleteWebhook".format(token))
-    r = r.json()
-    if r["ok"]:
-        s = requests.post(URL1 + URL2)
-        s = s.json()
-        if s["ok"]:
-            bot.send_message(owner_id, "Webhook was set")
-            return HttpResponse("<h1>Bot greets you</h1>")
-    return HttpResponse("<h1>Something went wrong</h1>")
+    bot.set_webhook(f"{hook_url}/sharebot/{token}")
+    bot.send_message(owner_id, "webhook set")
+    return JsonResponse({"status": "OK"}, status=200)
 
 
 @bot.callback_query_handler(func=lambda c: c.data.split("/")[0] == "take")
-def take_juz(callback_query: CallbackQuery):
+def take_juz(callback: CallbackQuery):
+    user_id = callback.from_user.id
+    reader = Reader.objects.get(tg_id=user_id)
 
-    user = callback_query.from_user.id
-    reader = Reader.objects.get(tg_id=user)
+    if reader.taken_juz:
+        bot.send_message(user_id, f"Вы уже взяли главу {reader.taken_juz.number}")
+        bot.answer_callback_query(callback.id)
+        return
 
-    if not reader.taken_juz:
-        data = callback_query.data.split("/")
-        juz_num, hatim_id = data[1], data[2]
+    _, juz_num, hatim_id = callback.data.split("/")
 
-        hatim = Hatim.objects.get(pk=hatim_id)
+    hatim = Hatim.objects.get(pk=hatim_id)
 
-        taken_juz, created = Juz.objects.get_or_create(hatim=hatim, number=juz_num)
+    taken_juz, created = Juz.objects.get_or_create(hatim=hatim, number=juz_num)
 
-        if taken_juz.status == 1:
+    if taken_juz.status != 1:
+        bot.send_message(
+            user_id, "Извините, эту главу уже взяли. Пожалуйста, выберите другую."
+        )
+        bot.answer_callback_query(callback.id)
+        return
 
-            taken_juz.set_status(2)
-            reader.take_juz(taken_juz)
+    taken_juz.set_status(2)
+    reader.take_juz(taken_juz)
 
-            bot.send_message(
-                user, "Вы взяли {} главу".format(juz_num), reply_markup=finish_reject_kb
-            )
-        else:
-            bot.send_message(
-                user, "Извините, эту главу уже взяли. Пожалуйста, выберите другую."
-            )
-    else:
-        bot.send_message(user, "Вы уже взяли главу {}".format(reader.taken_juz.number))
-
-    bot.answer_callback_query(callback_query.id)
+    bot.send_message(
+        user_id, f"Вы взяли {juz_num} главу", reply_markup=finish_reject_kb
+    )
+    bot.answer_callback_query(callback.id)
 
 
 @bot.message_handler(commands=["start"])
@@ -91,11 +83,12 @@ def start(message):
 
     reader, created = Reader.objects.get_or_create(tg_id=user)
 
-    reply_keyboard = take_chapter_keyboard
-    if reader.taken_juz:
-        reply_keyboard = finish_reject_kb
-
-    bot.send_message(user, "Hello!", reply_markup=reply_keyboard)
+    reply_keyboard = take_chapter_keyboard if not reader.taken_juz else finish_reject_kb
+    bot.send_message(
+        user,
+        "Здравствуйте!\nВ этом боте вы можете взять свободную главу из Книги.",
+        reply_markup=reply_keyboard,
+    )
 
 
 @bot.message_handler(commands=["help"])
@@ -119,44 +112,42 @@ def help(message):
 
 @bot.message_handler(commands=["mystats"])
 def show_stats(message):
-
     user = message.chat.id
     reader = Reader.objects.get(tg_id=user)
     all_readers = Reader.objects.order_by("-read_counter")
 
-    msg = "Книг прочитано: *{}*\n\n".format(HCount.objects.get().value)
+    msg = f"Книг прочитано: *{HCount.objects.get().value}*\n\n"
     msg += create_standings_table(reader, all_readers)
     bot.send_message(user, msg, parse_mode="Markdown")
 
 
 def take(user):
-
     not_finished_hatims = Hatim.objects.filter(finished=False)
 
-    inline_keyboard = InlineKeyboardMarkup(row_width=5)
+    keyboard = InlineKeyboardMarkup(row_width=5)
 
-    can_take = []
+    free_juzes = []
+    active_hatim = None
     for hatim in not_finished_hatims:
         this_juzes = Juz.objects.filter(hatim=hatim)
-        untakeable = set((juz.number for juz in this_juzes if juz.status in (2, 3)))
+        cant_take = set((juz.number for juz in this_juzes if juz.status in (2, 3)))
 
-        if len(untakeable) < 30:
-            can_take = sorted(list(set(range(1, 31)).difference(untakeable)))
+        if len(cant_take) < 30:
+            free_juzes = sorted(list(set(range(1, 31)).difference(cant_take)))
+            active_hatim = hatim
             break
 
-    if not can_take:
-        Hatim.objects.create()
-        can_take = range(1, 31)
+    if not free_juzes:
+        active_hatim = Hatim.objects.create()
+        free_juzes = range(1, 31)
 
-    inline_keyboard.add(
-        *map(
-            lambda juz_n: InlineKeyboardButton(
-                "{}".format(juz_n), callback_data="take/{}/{}".format(juz_n, hatim.id)
-            ),
-            can_take,
-        )
+    keyboard.add(
+        *[
+            InlineKeyboardButton(juz_n, callback_data=f"take/{juz_n}/{active_hatim.id}")
+            for juz_n in free_juzes
+        ]
     )
-    bot.send_message(user, "Выберите главу", reply_markup=inline_keyboard)
+    bot.send_message(user, "Выберите главу", reply_markup=keyboard)
 
 
 def finish(reader, juz_id):
@@ -187,17 +178,16 @@ def reject(reader, juz_id):
 @bot.message_handler(content_types=["text"])
 @grab_name
 def text_handler(message):
-
     text = message.text
     user = message.chat.id
     reader = Reader.objects.get(tg_id=user)
     taken_juz = reader.taken_juz
 
     if text == "Взять главу":
-        take(user)
-    elif taken_juz and text.startswith("Я прочитал"):
-        finish(reader, taken_juz.id)
-    elif taken_juz and text == "Отказаться от главы":
-        reject(reader, taken_juz.id)
-    else:
-        bot.send_message(message.chat.id, message.text)
+        return take(user)
+
+    if taken_juz and text.startswith("Я прочитал"):
+        return finish(reader, taken_juz.id)
+
+    if taken_juz and text == "Отказаться от главы":
+        return reject(reader, taken_juz.id)
