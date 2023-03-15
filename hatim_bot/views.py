@@ -1,4 +1,3 @@
-import requests
 import telebot
 from django.http.response import JsonResponse
 from django.shortcuts import HttpResponse
@@ -17,7 +16,7 @@ from hatim_bot.helpers import create_standings_table, grab_name
 from .config import hook_url, owner_id, token
 from .models import *
 
-bot = telebot.TeleBot(token, threaded=False)
+bot = telebot.TeleBot(token, threaded=False, skip_pending=True)
 take_chapter_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
 take_chapter_keyboard.add(KeyboardButton("Взять главу"))
 
