@@ -1,7 +1,8 @@
-import datetime
-
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpRequest
 from django.shortcuts import HttpResponse, render
 from django.views.decorators.clickjacking import xframe_options_exempt
+from django.views.decorators.http import require_http_methods
 
 from .models import *
 
@@ -18,25 +19,23 @@ def model_to_dict(obj, exclude=()):
     return d
 
 
+@require_http_methods(["GET"])
 @xframe_options_exempt
-def index(request):
-    if request.method == "GET":
-        d_number = datetime.datetime.now().isoweekday()
-        this_day = Day.objects.get(number=d_number)
-        today_schedule = this_day.schedule.id
-        alt_message = this_day.alt_message
+def index(request: HttpRequest) -> HttpResponse:
+    d_number = datetime.datetime.now().isoweekday()
 
-        today_lessons = Lesson.objects.filter(schedule=today_schedule)
-        today_breaks = Break.objects.filter(schedule=today_schedule)
+    this_day = Day.objects.get(number=d_number)
+    today_schedule = this_day.schedule.id
+    alt_message = this_day.alt_message
 
-        lessons = [
-            model_to_dict(lesson, exclude=("id", "schedule"))
-            for lesson in today_lessons
-        ]
-        b = [model_to_dict(br, exclude="id") for br in today_breaks]
+    today_lessons = Lesson.objects.filter(schedule=today_schedule)
+    today_breaks = Break.objects.filter(schedule=today_schedule)
 
-        data = {"lessons": lessons, "breaks": b, "alt_message": alt_message}
+    lessons = [
+        model_to_dict(lesson, exclude=("id", "schedule")) for lesson in today_lessons
+    ]
+    breaks = [model_to_dict(br, exclude="id") for br in today_breaks]
 
-        return render(request, "schedule/index.html", data)
+    data = {"lessons": lessons, "breaks": breaks, "alt_message": alt_message}
 
-    return HttpResponse(status=200)
+    return render(request, "schedule/index.html", data)
