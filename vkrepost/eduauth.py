@@ -6,7 +6,7 @@ logger = logging.getLogger("django")
 
 
 class EdutatarSession(Session):
-    def __init__(self, login: str, password: str, proxy: str = None, *args, **kwargs):
+    def __init__(self, login: str, password: str, proxy: str = None):
         super(EdutatarSession, self).__init__()
 
         self.__login = login

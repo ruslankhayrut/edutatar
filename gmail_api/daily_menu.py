@@ -1,7 +1,6 @@
 import os.path
 from xml.etree import ElementTree
 
-from edutatar.settings import EDU_LOGIN, EDU_PASSWORD
 from gmail_api import gmail_attachments
 from vkrepost.eduauth import EdutatarSession
 
@@ -116,12 +115,3 @@ class MenuUploader:
             gmail_attachments.label_modify(
                 self.gmail_session, "me", mail_id, labels_to_remove=["UNREAD"]
             )
-
-
-if __name__ == "__main__":
-    PROXY = None
-    g_session = gmail_attachments.connect(proxy=PROXY)
-    edu_session = EdutatarSession(EDU_LOGIN, EDU_PASSWORD, PROXY)
-    edu_session.login()
-    uploader = MenuUploader(edu_session, g_session)
-    uploader.make_it()

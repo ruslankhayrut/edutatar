@@ -10,6 +10,8 @@ distlib==0.3.6
 Django==3.1.14
 et-xmlfile==1.0.1
 filelock==3.4.1
+google-api-python-client==2.52.0
+google-auth-oauthlib==1.0.0
 identify==2.4.4
 idna==2.8
 importlib-metadata==4.8.3

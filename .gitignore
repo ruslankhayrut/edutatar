@@ -8,3 +8,5 @@ journal_parser/JournalParser/__pycache__/
 *.pyc
 .env
 test.py
+*token.json
+*secret.json
