@@ -122,5 +122,6 @@ if __name__ == "__main__":
     PROXY = None
     g_session = gmail_attachments.connect(proxy=PROXY)
     edu_session = EdutatarSession(EDU_LOGIN, EDU_PASSWORD, PROXY)
+    edu_session.login()
     uploader = MenuUploader(edu_session, g_session)
     uploader.make_it()
